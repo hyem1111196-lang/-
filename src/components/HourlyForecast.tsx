@@ -1,4 +1,4 @@
-import { type CSSProperties } from "react";
+import { useEffect, useState, type CSSProperties } from "react";
 import type { HourlyReading } from "../hooks/useReading";
 import { STAGE_CONTENT } from "../data/stageContent";
 import type { Reading } from "../lib/reading";
@@ -13,32 +13,37 @@ interface Props {
 
 const HAZARD_LABEL: Record<HazardKind, string> = {
   heat: "\uD3ED\uC5FC",
-  rain: "\uD638\uC6B0",
-  snow: "\uAC15\uC124",
   cold: "\uD55C\uD30C",
 };
+
+const SUMMER_HAZARDS: HazardKind[] = ["heat"];
+const WINTER_HAZARDS: HazardKind[] = ["cold"];
+
+/** \uC870\uD68C \uC2DC\uAC01\uC758 \uC6D4 \uAE30\uC900 \uACC4\uC808 \uC704\uD5D8(\uC5EC\uB984 4~10\uC6D4: \uD3ED\uC5FC\u00B7\uD638\uC6B0 / \uACA8\uC6B8 11~3\uC6D4: \uD3ED\uC124\u00B7\uD55C\uD30C) */
+function seasonHazards(date: Date): HazardKind[] {
+  const month = date.getMonth() + 1;
+  return month >= 11 || month <= 3 ? WINTER_HAZARDS : SUMMER_HAZARDS;
+}
 
 const STAGE_VAR: Record<StageLevel, string> = {
   normal: "var(--stage-normal)",
   interest: "var(--stage-interest)",
   warning: "var(--stage-warning)",
   danger: "var(--stage-danger)",
+  critical: "var(--stage-critical)",
 };
 
 const W = 56;
 const CHART_H = 224;
 
 function valueOf(h: HourlyReading, hazard: HazardKind) {
-  if (hazard === "heat") return h.heatFeelsLikeC;
   if (hazard === "cold") return h.coldFeelsLikeC;
-  return h.rn1mm;
+  return h.heatFeelsLikeC;
 }
 
 function levelOf(h: HourlyReading, hazard: HazardKind): StageLevel {
-  if (hazard === "heat") return h.heatLevel;
   if (hazard === "cold") return h.coldLevel;
-  if (hazard === "snow") return h.snowLevel;
-  return h.rainLevel;
+  return h.heatLevel;
 }
 
 function makeDayTimeline(hourly: HourlyReading[], base: Date) {
@@ -65,10 +70,9 @@ function sameHour(a: Date, b: Date) {
 function renderBars(hourly: HourlyReading[], hazard: HazardKind) {
   const values = hourly.map((h) => valueOf(h, hazard));
   const isCold = hazard === "cold";
-  const isPrecip = hazard === "rain" || hazard === "snow";
   const min = Math.min(...values);
   const max = Math.max(...values);
-  const span = Math.max(isPrecip ? 1 : 6, max - min);
+  const span = Math.max(6, max - min);
   const H = 150;
   const padTop = 26;
   const barW = 24;
@@ -77,16 +81,15 @@ function renderBars(hourly: HourlyReading[], hazard: HazardKind) {
   return hourly.map((h, i) => {
     const value = valueOf(h, hazard);
     const level = levelOf(h, hazard);
-    const ratio = isPrecip ? value / Math.max(hazard === "snow" ? 3 : 10, max) : (value - min) / span;
-    const barH = (isPrecip ? 6 : padTop) + ratio * H;
+    const ratio = (value - min) / span;
+    const barH = padTop + ratio * H;
     const x = i * W + (W - barW) / 2;
     const y = 190 - barH;
-    const dry = isPrecip && value < 0.1;
     const isExtreme = value === extreme;
-    const label = isPrecip ? (dry ? "0" : value < 10 ? value.toFixed(1) : String(Math.round(value))) : `${value.toFixed(1)}\u00B0`;
+    const label = `${value.toFixed(1)}\u00B0`;
     return (
       <g key={`${h.time.toISOString()}-${i}`}>
-        <rect x={x} y={y} width={barW} height={barH} rx="6" fill={dry ? "var(--line-strong)" : STAGE_VAR[level]} opacity={dry ? 0.55 : 1} />
+        <rect x={x} y={y} width={barW} height={barH} rx="6" fill={STAGE_VAR[level]} />
         <text x={i * W + W / 2} y={y - 6} className={`forecast__val ${isExtreme ? "is-extreme" : ""}`}>{label}</text>
         <text x={i * W + W / 2} y={214} className="forecast__hr">{`${i}\uC2DC`}</text>
       </g>
@@ -108,33 +111,28 @@ function summary(hourly: HourlyReading[], hazard: HazardKind) {
   const level = target ? levelOf(target, hazard) : "normal";
   const hour = target ? `${target.time.getHours()}\uC2DC` : "-";
   const label =
-    hazard === "heat"
-      ? `\uCD5C\uACE0 \uCCB4\uAC10\uC628\uB3C4 ${value.toFixed(1)}\u00B0C`
-      : hazard === "cold"
-        ? `\uCD5C\uC800 \uCCB4\uAC10\uC628\uB3C4 ${value.toFixed(1)}\u00B0C`
-        : hazard === "snow"
-          ? `\uCD5C\uACE0 \uC801\uC124\uB7C9 ${value < 10 ? value.toFixed(1) : Math.round(value)}cm`
-          : `\uCD5C\uACE0 \uAC15\uC218\uB7C9 ${value < 10 ? value.toFixed(1) : Math.round(value)}mm`;
+    hazard === "cold"
+      ? `\uCD5C\uC800 \uCCB4\uAC10\uC628\uB3C4 ${value.toFixed(1)}\u00B0C`
+      : `\uCD5C\uACE0 \uCCB4\uAC10\uC628\uB3C4 ${value.toFixed(1)}\u00B0C`;
   return { label, hour, level };
 }
 
 function levelLabel(level: StageLevel) {
-  return level === "normal" ? "\uC548\uC804" : level === "interest" ? "\uAD00\uC2EC" : level === "warning" ? "\uC8FC\uC758\uBCF4" : "\uACBD\uBCF4";
-}
-
-function titleFor(hazard: HazardKind) {
-  if (hazard === "snow") return "\uC801\uC124\uB7C9 \uC608\uBCF4";
-  if (hazard === "rain") return "\uAC15\uC218\uB7C9 \uC608\uBCF4";
-  if (hazard === "cold") return "\uCCB4\uAC10\uC628\uB3C4 \uC608\uBCF4";
-  return "\uCCB4\uAC10\uC628\uB3C4 \uC608\uBCF4";
+  return level === "normal" ? "\uC548\uC804" : level === "interest" ? "\uAD00\uC2EC" : level === "warning" ? "\uC8FC\uC758\uBCF4" : level === "critical" ? "\uC911\uB300\uACBD\uBCF4" : "\uACBD\uBCF4";
 }
 
 export function HourlyForecast({ hourly, reading, loading, hazardOverride }: Props) {
-  const hazard = hazardOverride ?? reading?.primaryHazard ?? "heat";
+  const tabs = seasonHazards(reading?.observedAt ?? new Date());
+  const [selected, setSelected] = useState<HazardKind>(hazardOverride ?? reading?.primaryHazard ?? tabs[0]);
+
+  // 현황 화면 칩으로 특정 위험을 지정해 들어오면 그 위험으로 맞춘다.
+  useEffect(() => {
+    if (hazardOverride) setSelected(hazardOverride);
+  }, [hazardOverride]);
+
+  const hazard = tabs.includes(selected) ? selected : tabs[0];
   const dayHourly = makeDayTimeline(hourly, reading?.observedAt ?? new Date());
-  const isSnow = hazard === "snow";
-  const isRain = hazard === "rain";
-  const title = titleFor(hazard);
+  const title = "체감온도 예보";
 
   if (loading && dayHourly.length === 0) return <section className="card pad">{"\uC608\uBCF4\uB97C \uBD88\uB7EC\uC624\uB294 \uC911..."}</section>;
   if (dayHourly.length === 0) {
@@ -146,7 +144,7 @@ export function HourlyForecast({ hourly, reading, loading, hazardOverride }: Pro
     );
   }
 
-  const unit = isSnow ? "cm" : isRain ? "mm" : "\u00B0C";
+  const unit = "\u00B0C";
   const top = summary(dayHourly, hazard);
   const stage = maxStage(dayHourly, hazard);
   const stageMeta = STAGE_CONTENT[hazard][stage];
@@ -155,6 +153,23 @@ export function HourlyForecast({ hourly, reading, loading, hazardOverride }: Pro
   return (
     <section className="forecast">
       <div className="section-title"><b>{HAZARD_LABEL[hazard]}</b> {title}</div>
+
+      {tabs.length > 1 && (
+        <div className="forecast-tabs" role="tablist" aria-label={"예보 위험 선택"}>
+          {tabs.map((h) => (
+            <button
+              key={h}
+              type="button"
+              role="tab"
+              aria-selected={h === hazard}
+              className={`forecast-tab ${h === hazard ? "is-active" : ""}`}
+              onClick={() => setSelected(h)}
+            >
+              {HAZARD_LABEL[h]}
+            </button>
+          ))}
+        </div>
+      )}
 
       <div className="forecast-peak card" style={{ "--stage": STAGE_VAR[top.level] } as CSSProperties}>
         <span className="forecast-peak__kicker">{"\uC624\uB298 0\uC2DC~24\uC2DC \uC911 \uCD5C\uACE0 \uC704\uD5D8\uAC12"}</span>

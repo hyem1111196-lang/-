@@ -5,8 +5,6 @@ import { computeFeelsLike } from "../lib/feelsLike";
 import {
   classifyCold,
   classifyHeat,
-  classifyRain,
-  classifySnow,
   type StageLevel,
 } from "../lib/stages";
 import { getBestPosition, reverseGeocode } from "../lib/geolocation";
@@ -22,10 +20,7 @@ export interface HourlyReading {
   heatLevel: StageLevel;
   coldFeelsLikeC: number;
   coldLevel: StageLevel;
-  rn1mm: number;
   sky?: number;
-  rainLevel: StageLevel;
-  snowLevel: StageLevel;
 }
 
 function sameHour(a: Date, b: Date) {
@@ -58,9 +53,6 @@ function currentHourReading(r: Reading): HourlyReading {
     heatLevel,
     coldFeelsLikeC: coldFeels,
     coldLevel,
-    rn1mm: r.rn1mm,
-    rainLevel: classifyRain({ rn1mm: r.rn1mm, pty: r.pty }),
-    snowLevel: classifySnow({ snoCm: r.rn1mm, pty: r.pty }),
   };
 }
 
@@ -115,8 +107,6 @@ export function useReading() {
             const heatLevel = classifyHeat(heatFeels);
             const coldLevel = classifyCold(coldFeels);
             const level = r.model === "winter" ? coldLevel : heatLevel;
-            const rainLevel = classifyRain({ rn1mm: p.rn1mm, pty: p.pty });
-            const snowLevel = classifySnow({ snoCm: p.rn1mm, pty: p.pty });
             return {
               time: p.time,
               tempC: p.tempC,
@@ -126,10 +116,7 @@ export function useReading() {
               heatLevel,
               coldFeelsLikeC: coldFeels,
               coldLevel,
-              rn1mm: p.rn1mm,
               sky: p.sky,
-              rainLevel,
-              snowLevel,
             };
           });
           setHourly(mergeCurrentHour(mapped, currentHourReading(r)));

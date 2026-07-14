@@ -278,6 +278,10 @@
   --stage-soft: var(--stage-danger-soft);
   --stage-line: var(--stage-danger-line);
 }
+.stagechip[data-level="critical"] {
+  --stage-soft: var(--stage-critical-soft);
+  --stage-line: var(--stage-critical-line);
+}
 .current__grid {
   display: grid;
   grid-template-columns: 1fr 1fr 1fr;
@@ -1069,6 +1073,10 @@
   background: var(--stage-danger);
   animation: ping 1.3s var(--ease) infinite;
 }
+.bnav__pulse.stage-critical {
+  background: var(--stage-critical);
+  animation: ping 1.3s var(--ease) infinite;
+}
 @keyframes ping {
   0% {
     box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.5);
@@ -1106,7 +1114,7 @@
 
 .seg--hazards {
   grid-auto-flow: initial;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 .rail-actions {
@@ -1307,14 +1315,16 @@
 }
 
 .weather-focus__chip.level-warning,
-.weather-focus__chip.level-danger {
+.weather-focus__chip.level-danger,
+.weather-focus__chip.level-critical {
   background: var(--stage);
   border-color: var(--stage);
   color: #fff;
 }
 
 .weather-focus__chip.level-warning span,
-.weather-focus__chip.level-danger span {
+.weather-focus__chip.level-danger span,
+.weather-focus__chip.level-critical span {
   color: #fff;
 }
 
@@ -1434,6 +1444,33 @@
   color: var(--text-3);
   font-size: var(--text-xs);
   line-height: 1.45;
+}
+
+.forecast-tabs {
+  display: flex;
+  gap: var(--sp-2);
+  padding: 4px;
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  border-radius: var(--r-pill);
+}
+
+.forecast-tab {
+  flex: 1;
+  padding: 8px 12px;
+  border: none;
+  border-radius: var(--r-pill);
+  background: transparent;
+  color: var(--text-2);
+  font-size: var(--text-sm);
+  font-weight: 800;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.forecast-tab.is-active {
+  background: var(--korail-blue);
+  color: #fff;
 }
 
 .forecast-peak {

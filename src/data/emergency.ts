@@ -25,8 +25,8 @@ export const EMERGENCY_GUIDES: EmergencyGuide[] = [
     id: "heatstroke",
     title: "열사병",
     kind: "heat",
-    summary: "체온조절 실패로 체온이 급격히 상승하는 응급상황(치명적).",
-    symptoms: ["체온 40°C 이상", "의식 저하·혼수", "땀이 나지 않고 피부가 뜨겁고 건조", "두통·어지러움·구역"],
+    summary: "체온조절중추가 열자극을 견디지 못해 체온조절기능이 상실되는 질환",
+    symptoms: ["고열", "중추신경 기능장애(의식장애, 혼수상태)", "건조하고 뜨거운 피부", "두통, 오한, 빈맥, 빈호흡 동반 가능"],
     firstAid: [
       "즉시 119 신고",
       "시원한 곳으로 옮기고 옷을 느슨하게",
@@ -39,8 +39,8 @@ export const EMERGENCY_GUIDES: EmergencyGuide[] = [
     id: "heat-exhaustion",
     title: "열탈진",
     kind: "heat",
-    summary: "땀을 많이 흘려 수분·염분이 부족해진 상태.",
-    symptoms: ["많은 땀·창백", "어지러움·무력감", "두통·구역·빠른 맥박", "체온은 정상~약간 상승"],
+    summary: "땀을 많이 흘려 수분과 염분이 적절히 공급되지 못하는 경우 발생하는 질환",
+    symptoms: ["땀을 많이 흘리는 등 탈수·전해질 소실", "극심한 무력감과 피로", "근육경련, 구토, 어지럼증 동반 가능"],
     firstAid: [
       "시원한 곳에서 안정·휴식",
       "물 또는 이온음료로 수분·염분 보충",
@@ -51,8 +51,8 @@ export const EMERGENCY_GUIDES: EmergencyGuide[] = [
     id: "heat-cramp",
     title: "열경련",
     kind: "heat",
-    summary: "땀으로 염분이 빠져 근육에 경련이 오는 상태.",
-    symptoms: ["팔·다리·복부 근육 경련·통증", "많은 땀"],
+    summary: "수분과 염분이 과도하게 손실되어 근육경련이 발생하는 질환",
+    symptoms: ["어깨, 팔, 다리, 복부, 손가락 등 근육경련"],
     firstAid: ["시원한 곳에서 휴식", "이온음료·소금물로 염분 보충", "경련 부위 가볍게 마사지·스트레칭", "1시간 이상 지속 시 병원"],
   },
   {

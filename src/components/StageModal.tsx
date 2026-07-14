@@ -11,14 +11,7 @@ interface Props {
 
 export function StageModal({ reading, onConfirm, onClose }: Props) {
   const meta = getStageMeta(reading.primaryHazard, reading.primaryLevel);
-  const isRain = reading.primaryHazard === "rain";
-  const isSnow = reading.primaryHazard === "snow";
-  const amountText = reading.rn1mm < 10 ? reading.rn1mm.toFixed(1) : String(Math.round(reading.rn1mm));
-  const headline = isSnow
-    ? `시간당 강설 ${amountText}cm`
-    : isRain
-      ? `시간당 강수 ${amountText}mm`
-      : `체감온도 ${formatTemp(reading.feelsLikeC)}`;
+  const headline = `체감온도 ${formatTemp(reading.feelsLikeC)}`;
 
   return (
     <div className="modal" role="dialog" aria-modal="true" aria-label="위험별 철도 조치사항">

@@ -21,7 +21,7 @@ export function Onboarding({ onClose }: Props) {
             기상정보 대응시스템
           </h2>
           <p className="ob__lead">
-            옥외 작업현장의 <b>폭염·한파·호우</b> 체감온도와 단계별 안전조치를 한 화면에서.
+            옥외 작업현장의 <b>폭염·한파</b> 체감온도와 단계별 안전조치를 한 화면에서.
             앱 설치 없이 전 직원·협력업체 누구나.
           </p>
         </div>

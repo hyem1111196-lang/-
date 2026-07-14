@@ -35,16 +35,19 @@
   /* ── 안전 단계 색상 (인지성 위해 고정) ── */
   --stage-normal: #16a34a;
   --stage-interest: #ca8a04;
-  --stage-warning: #ea580c;
-  --stage-danger: #dc2626;
+  --stage-warning: #eab308;
+  --stage-danger: #ea580c;
+  --stage-critical: #dc2626;
   --stage-normal-soft: #e8f7ee;
   --stage-interest-soft: #fdf6e3;
-  --stage-warning-soft: #fdeee2;
-  --stage-danger-soft: #fdeaea;
+  --stage-warning-soft: #fef9c3;
+  --stage-danger-soft: #fdeee2;
+  --stage-critical-soft: #fdeaea;
   --stage-normal-line: #b6e3c6;
   --stage-interest-line: #f0dca0;
-  --stage-warning-line: #f6cba6;
-  --stage-danger-line: #f4b4b4;
+  --stage-warning-line: #fde68a;
+  --stage-danger-line: #f6cba6;
+  --stage-critical-line: #f4b4b4;
 
   /* 현재 단계 (JS 가 갱신) */
   --stage: var(--stage-normal);

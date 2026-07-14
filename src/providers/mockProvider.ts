@@ -1,6 +1,6 @@
 import type { HourlyPoint, WeatherNow, WeatherProvider } from "./types";
 
-type DemoMode = "heat" | "cold" | "rain" | "snow" | "danger" | "warning" | "interest" | null;
+type DemoMode = "heat" | "cold" | "danger" | "warning" | "interest" | null;
 
 function readDemoMode(): DemoMode {
   if (typeof window === "undefined") return null;
@@ -10,7 +10,7 @@ function readDemoMode(): DemoMode {
     // ignore
   }
   const url = new URLSearchParams(window.location.search).get("demo");
-  const valid = ["heat", "cold", "rain", "snow", "danger", "warning", "interest"];
+  const valid = ["heat", "cold", "danger", "warning", "interest"];
   return valid.includes(url ?? "") ? (url as DemoMode) : null;
 }
 
@@ -40,10 +40,6 @@ function applyDemo(now: WeatherNow, demo: DemoMode): WeatherNow {
       return { ...now, tempC: 31, humidityPct: 70, windMs: 2, rn1mm: 0, pty: 0, sky: 3 };
     case "cold":
       return { ...now, tempC: -8, humidityPct: 45, windMs: 7, rn1mm: 0, pty: 0, sky: 3 };
-    case "rain":
-      return { ...now, tempC: 22, humidityPct: 92, windMs: 4, rn1mm: 25, pty: 1, sky: 4 };
-    case "snow":
-      return { ...now, tempC: -3, humidityPct: 85, windMs: 3, rn1mm: 2, pty: 3, sky: 4 };
     default:
       return now;
   }
@@ -73,32 +69,19 @@ export function createMockProvider(): WeatherProvider {
       return make(lat, new Date());
     },
     async getHourly(lat) {
-      const demo = readDemoMode();
       const out: HourlyPoint[] = [];
       const start = new Date();
       for (let h = 1; h <= 12; h += 1) {
         const when = new Date(start.getTime() + h * 3600_000);
         const n = make(lat, when);
-        let rn1mm = n.rn1mm;
-        let pty = n.pty;
-        let sky = n.sky;
-        if (demo === "rain") {
-          rn1mm = Math.round(28 * Math.exp(-((h - 4) ** 2) / 12) * 10) / 10;
-          pty = rn1mm >= 0.1 ? 1 : 0;
-          sky = pty ? 4 : 3;
-        } else if (demo === "snow") {
-          rn1mm = Math.round(3 * Math.exp(-((h - 4) ** 2) / 14) * 10) / 10;
-          pty = rn1mm >= 0.1 ? 3 : 0;
-          sky = pty ? 4 : 3;
-        }
         out.push({
           time: when,
           tempC: n.tempC,
           humidityPct: n.humidityPct,
           windMs: n.windMs,
-          pty,
-          sky,
-          rn1mm,
+          pty: n.pty,
+          sky: n.sky,
+          rn1mm: n.rn1mm,
         });
       }
       return out;

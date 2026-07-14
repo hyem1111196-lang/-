@@ -20,8 +20,6 @@ interface Props {
 
 const HAZARD_LABEL: Record<HazardKind, string> = {
   heat: "\uD3ED\uC5FC",
-  rain: "\uD638\uC6B0",
-  snow: "\uAC15\uC124",
   cold: "\uD55C\uD30C",
 };
 
@@ -30,15 +28,14 @@ const LEVEL_LABEL: Record<StageLevel, string> = {
   interest: "\uAD00\uC2EC",
   warning: "\uC8FC\uC758\uBCF4",
   danger: "\uACBD\uBCF4",
+  critical: "\uC911\uB300\uACBD\uBCF4",
 };
 
-const SUMMER_HAZARDS: HazardKind[] = ["heat", "rain"];
-const WINTER_HAZARDS: HazardKind[] = ["snow", "cold"];
+const SUMMER_HAZARDS: HazardKind[] = ["heat"];
+const WINTER_HAZARDS: HazardKind[] = ["cold"];
 
-const HAZARD_STAGE_KEY: Record<HazardKind, keyof Pick<HourlyReading, "heatLevel" | "rainLevel" | "snowLevel" | "coldLevel">> = {
+const HAZARD_STAGE_KEY: Record<HazardKind, keyof Pick<HourlyReading, "heatLevel" | "coldLevel">> = {
   heat: "heatLevel",
-  rain: "rainLevel",
-  snow: "snowLevel",
   cold: "coldLevel",
 };
 
@@ -57,22 +54,12 @@ function levelText(hazard: HazardKind, level: StageLevel, date: Date) {
 }
 
 function valueText(hazard: HazardKind, reading: Reading, hourly: HourlyReading[]) {
-  if (hazard === "heat") {
-    const values = [reading.feelsLikeC, ...hourly.map((h) => h.heatFeelsLikeC)].filter(Number.isFinite);
-    return `\uCD5C\uACE0 \uCCB4\uAC10\uC628\uB3C4 ${formatTemp(Math.max(...values))}`;
-  }
   if (hazard === "cold") {
     const values = [reading.feelsLikeC, ...hourly.map((h) => h.coldFeelsLikeC)].filter(Number.isFinite);
     return `\uCD5C\uC800 \uCCB4\uAC10\uC628\uB3C4 ${formatTemp(Math.min(...values))}`;
   }
-  if (hazard === "rain") {
-    const values = [reading.rn1mm, ...hourly.map((h) => h.rn1mm)].filter(Number.isFinite);
-    const max = Math.max(...values);
-    return `\uCD5C\uACE0 \uAC15\uC218\uB7C9 ${max < 10 ? max.toFixed(1) : Math.round(max)}mm`;
-  }
-  const values = [reading.primaryHazard === "snow" ? reading.rn1mm : 0, ...hourly.map((h) => h.rn1mm)].filter(Number.isFinite);
-  const max = Math.max(...values);
-  return `\uCD5C\uACE0 \uC801\uC124\uB7C9 ${max < 10 ? max.toFixed(1) : Math.round(max)}cm`;
+  const values = [reading.feelsLikeC, ...hourly.map((h) => h.heatFeelsLikeC)].filter(Number.isFinite);
+  return `\uCD5C\uACE0 \uCCB4\uAC10\uC628\uB3C4 ${formatTemp(Math.max(...values))}`;
 }
 
 function getOperationalSeason(date: Date) {
@@ -122,12 +109,6 @@ function WeatherFocus({ reading, hourly, onOpenSafety, onOpenForecast }: { readi
 export function CurrentCard({ reading, hourly, loading, error, onGps, onToggleFav, onOpenSafety, onOpenForecast, isFav }: Props) {
   const [share, setShare] = useState(false);
   const meta = reading ? getStageMeta(reading.primaryHazard, reading.primaryLevel) : null;
-  const isRain = reading?.primaryHazard === "rain";
-  const isSnow = reading?.primaryHazard === "snow";
-  const isPrecip = isRain || isSnow;
-  const amountText = reading ? (reading.rn1mm < 10 ? reading.rn1mm.toFixed(1) : String(Math.round(reading.rn1mm))) : "0";
-  const amountUnit = isSnow ? "cm" : "mm";
-  const amountCap = isSnow ? "\uC2DC\uAC04\uB2F9 \uC801\uC124\uB7C9" : "\uC2DC\uAC04\uB2F9 \uAC15\uC218\uB7C9";
 
   return (
     <section className="current" style={meta ? ({ "--stage": meta.color } as CSSProperties) : undefined}>
@@ -155,14 +136,8 @@ export function CurrentCard({ reading, hourly, loading, error, onGps, onToggleFa
         <>
           <div className="current__hero current__hero--plain">
             <div className="current__big">
-              <div className="current__feel">
-                {isPrecip ? (
-                  <>{amountText}<span className="current__unit">{amountUnit}</span></>
-                ) : (
-                  formatTemp(reading.feelsLikeC)
-                )}
-              </div>
-              <div className="current__feel-cap">{isPrecip ? amountCap : "\uCCB4\uAC10\uC628\uB3C4"}</div>
+              <div className="current__feel">{formatTemp(reading.feelsLikeC)}</div>
+              <div className="current__feel-cap">{"\uCCB4\uAC10\uC628\uB3C4"}</div>
             </div>
           </div>
 
@@ -178,8 +153,8 @@ export function CurrentCard({ reading, hourly, loading, error, onGps, onToggleFa
             <div><dt>{"\uAE30\uC628"}</dt><dd>{formatTemp(reading.tempC)}</dd></div>
             <div><dt>{"\uC2B5\uB3C4"}</dt><dd>{Math.round(reading.humidityPct)}%</dd></div>
             <div>
-              <dt>{isPrecip ? "\uCCB4\uAC10\uC628\uB3C4" : "\uBC14\uB78C"}</dt>
-              <dd>{isPrecip ? formatTemp(reading.feelsLikeC) : `${reading.windMs.toFixed(1)} m/s`}</dd>
+              <dt>{"\uBC14\uB78C"}</dt>
+              <dd>{`${reading.windMs.toFixed(1)} m/s`}</dd>
             </div>
             <div className="current__grid-wide"><dt>{"\uD604\uC7AC \uC9C0\uC5ED"}</dt><dd>{reading.location}</dd></div>
             <div className="current__grid-wide"><dt>{"\uC870\uD68C \uC2DC\uAC01"}</dt><dd className="current__time">{formatObservedAt(reading.observedAt)}</dd></div>
