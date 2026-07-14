@@ -1,0 +1,96 @@
+/* ───────────────────────────────────────────────
+   디자인 토큰 — 코레일 작업현장 체감온도 AI 관리시스템
+   방향: 공공기관 신뢰형 + 강한 단계-색상 신호체계
+   ─────────────────────────────────────────────── */
+
+@font-face {
+  font-family: "Pretendard Variable";
+  src: url("/fonts/PretendardVariable.woff2") format("woff2-variations");
+  font-weight: 100 900;
+  font-display: swap;
+  font-style: normal;
+}
+
+:root {
+  /* ── KORAIL 브랜드 (로고 추출) ── */
+  --korail-blue: #0066b3;
+  --korail-blue-strong: #00529c;
+  --korail-cyan: #00afdc;
+  --korail-gold: #f7bc60;
+  --navy-900: #0a1d38;
+  --navy-800: #0e2a4d;
+  --navy-700: #143a66;
+
+  /* ── 표면 / 텍스트 ── */
+  --bg: #eef3f9;
+  --surface: #ffffff;
+  --surface-2: #f6f9fd;
+  --line: #e2e9f2;
+  --line-strong: #cdd9e8;
+  --text: #16243a;
+  --text-2: #51617a;
+  --text-3: #8493a8;
+  --text-on-brand: #ffffff;
+
+  /* ── 안전 단계 색상 (인지성 위해 고정) ── */
+  --stage-normal: #16a34a;
+  --stage-interest: #ca8a04;
+  --stage-warning: #ea580c;
+  --stage-danger: #dc2626;
+  --stage-normal-soft: #e8f7ee;
+  --stage-interest-soft: #fdf6e3;
+  --stage-warning-soft: #fdeee2;
+  --stage-danger-soft: #fdeaea;
+  --stage-normal-line: #b6e3c6;
+  --stage-interest-line: #f0dca0;
+  --stage-warning-line: #f6cba6;
+  --stage-danger-line: #f4b4b4;
+
+  /* 현재 단계 (JS 가 갱신) */
+  --stage: var(--stage-normal);
+  --stage-soft: var(--stage-normal-soft);
+  --stage-line: var(--stage-normal-line);
+
+  /* ── 타이포 ── */
+  --font-sans: "Pretendard Variable", -apple-system, BlinkMacSystemFont, "Segoe UI",
+    "Malgun Gothic", "Apple SD Gothic Neo", system-ui, sans-serif;
+  --text-xs: 0.75rem;
+  --text-sm: 0.85rem;
+  --text-base: 0.95rem;
+  --text-lg: 1.1rem;
+  --text-xl: 1.35rem;
+  --text-2xl: 1.7rem;
+  --text-hero: clamp(3.6rem, 2.2rem + 9vw, 5.2rem);
+
+  /* ── 간격 ── */
+  --sp-1: 0.25rem;
+  --sp-2: 0.5rem;
+  --sp-3: 0.75rem;
+  --sp-4: 1rem;
+  --sp-5: 1.5rem;
+  --sp-6: 2rem;
+  --sp-8: 3rem;
+
+  /* ── 모양 ── */
+  --r-sm: 8px;
+  --r-md: 14px;
+  --r-lg: 20px;
+  --r-xl: 28px;
+  --r-pill: 999px;
+
+  --shadow-sm: 0 1px 3px rgba(16, 36, 66, 0.06), 0 1px 2px rgba(16, 36, 66, 0.04);
+  --shadow-md: 0 6px 20px rgba(16, 36, 66, 0.08);
+  --shadow-lg: 0 18px 48px rgba(10, 29, 56, 0.16);
+  --shadow-brand: 0 14px 32px rgba(0, 102, 179, 0.28);
+
+  /* ── 모션 ── */
+  --dur-fast: 140ms;
+  --dur: 260ms;
+  --dur-slow: 520ms;
+  --ease: cubic-bezier(0.22, 1, 0.36, 1);
+
+  /* ── 레이아웃 ── */
+  --app-max: 480px;
+  --nav-h: 64px;
+  --safe-b: env(safe-area-inset-bottom, 0px);
+}

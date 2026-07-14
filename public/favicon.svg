@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="체감온도 안전">
+  <rect width="64" height="64" rx="14" fill="#0066B3"/>
+  <!-- 온도계 -->
+  <rect x="28.5" y="12" width="7" height="28" rx="3.5" fill="#ffffff"/>
+  <circle cx="32" cy="46" r="9" fill="#ffffff"/>
+  <circle cx="32" cy="46" r="5.5" fill="#F7BC60"/>
+  <rect x="30.5" y="24" width="3" height="20" rx="1.5" fill="#F7BC60"/>
+  <!-- 시안 포인트 -->
+  <circle cx="46" cy="18" r="4" fill="#00AFDC"/>
+</svg>
