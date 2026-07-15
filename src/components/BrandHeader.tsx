@@ -1,9 +1,8 @@
 ﻿interface Props {
-  source?: "kma" | "mock";
   onInfo: () => void;
 }
 
-export function BrandHeader({ source, onInfo }: Props) {
+export function BrandHeader({ onInfo }: Props) {
   return (
     <header className="brand brand--compact">
       <div className="brand__top">
@@ -24,10 +23,6 @@ export function BrandHeader({ source, onInfo }: Props) {
 
       <div className="brand__titlerow">
         <h1 className="brand__title">AI 기상정보 대응 시스템</h1>
-        <span className={`src-badge src-badge--${source ?? "mock"}`}>
-          <span className="src-dot" />
-          {source === "kma" ? "기상청 실시간" : "시범운영"}
-        </span>
       </div>
     </header>
   );

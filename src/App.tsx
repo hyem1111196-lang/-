@@ -47,7 +47,7 @@ export default function App() {
   return (
     <div className="app-bg">
       <div className="app-shell">
-        <BrandHeader source={reading?.source} onInfo={() => setShowOnboarding(true)} />
+        <BrandHeader onInfo={() => setShowOnboarding(true)} />
 
         <main className="app-main">
           {tab === "home" && (
