@@ -1,4 +1,5 @@
 import type { HourlyPoint, WeatherNow, WeatherProvider } from "./types";
+import { latLonToGrid } from "../lib/kmaGrid";
 
 const ENDPOINT = "/api/weather";
 
@@ -39,7 +40,8 @@ function parseBaseDate(base?: { date: string; time: string }): Date {
 export function createKmaProvider(): WeatherProvider {
   return {
     async getNow(lat, lon): Promise<WeatherNow> {
-      const params = new URLSearchParams({ lat: String(lat), lon: String(lon) });
+      const g = latLonToGrid(lat, lon);
+      const params = new URLSearchParams({ nx: String(g.x), ny: String(g.y) });
       const res = await fetch(`${ENDPOINT}?${params}`);
       if (!res.ok) throw new Error(`weather proxy ${res.status}`);
       const data: NowResponse = await res.json();
@@ -60,9 +62,10 @@ export function createKmaProvider(): WeatherProvider {
     },
 
     async getHourly(lat, lon): Promise<HourlyPoint[]> {
+      const g = latLonToGrid(lat, lon);
       const params = new URLSearchParams({
-        lat: String(lat),
-        lon: String(lon),
+        nx: String(g.x),
+        ny: String(g.y),
         mode: "hourly",
       });
       const res = await fetch(`${ENDPOINT}?${params}`);

@@ -3,33 +3,35 @@ const VILAGE = "https://apis.data.go.kr/1360000/VilageFcstInfoService_2.0/getVil
 const KST_OFFSET_MS = 9 * 60 * 60 * 1000;
 const HOUR_MS = 60 * 60 * 1000;
 
-const JSON_HEADERS = {
-  "content-type": "application/json; charset=utf-8",
-  "cache-control": "public, max-age=60",
-};
-
 export async function handler(event) {
   const key = process.env.KMA_SERVICE_KEY;
-  const lat = Number(event.queryStringParameters?.lat);
-  const lon = Number(event.queryStringParameters?.lon);
-  const mode = event.queryStringParameters?.mode;
+  const q = event.queryStringParameters || {};
+  const nx = Number(q.nx);
+  const ny = Number(q.ny);
+  const lat = Number(q.lat);
+  const lon = Number(q.lon);
+  const mode = q.mode;
 
-  if (!Number.isFinite(lat) || !Number.isFinite(lon)) {
-    return resp(400, { error: "lat/lon required" });
+  // 격자(nx,ny)가 오면 그대로 사용 → 같은 5km 셀의 요청이 동일 URL이 되어 CDN 캐시를 공유한다.
+  let grid;
+  if (Number.isFinite(nx) && Number.isFinite(ny)) {
+    grid = { x: nx, y: ny };
+  } else if (Number.isFinite(lat) && Number.isFinite(lon)) {
+    grid = latLonToGrid(lat, lon);
+  } else {
+    return resp(400, { error: "nx/ny or lat/lon required" });
   }
   if (!key) {
     return resp(503, { error: "KMA_SERVICE_KEY not configured" });
   }
 
-  const grid = latLonToGrid(lat, lon);
-
   try {
     if (mode === "hourly") {
       const hourly = await fetchDailyForecast(key, grid);
-      return resp(200, { hourly, grid, source: "getVilageFcst" });
+      return resp(200, { hourly, grid, source: "getVilageFcst" }, 1800);
     }
     const now = await fetchNow(key, grid);
-    return resp(200, { ...now, grid, source: "getUltraSrtNcst" });
+    return resp(200, { ...now, grid, source: "getUltraSrtNcst" }, 600);
   } catch (err) {
     return resp(502, { error: String(err && err.message ? err.message : err) });
   }
@@ -224,11 +226,11 @@ function parseSnow(v) {
   return nums.length ? Math.max(...nums) : 0;
 }
 
-function resp(statusCode, body) {
-  // 정상 응답만 60초 캐시. 에러는 캐시하지 않아 일시적 실패가 굳지 않게 한다.
+function resp(statusCode, body, maxAge = 300) {
+  // 정상 응답만 캐시(격자 단위 공유 → 함수 호출 절감). 에러는 캐시하지 않는다.
   const headers =
     statusCode === 200
-      ? JSON_HEADERS
+      ? { "content-type": "application/json; charset=utf-8", "cache-control": `public, max-age=${maxAge}` }
       : { "content-type": "application/json; charset=utf-8", "cache-control": "no-store" };
   return { statusCode, headers, body: JSON.stringify(body) };
 }
