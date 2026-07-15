@@ -36,7 +36,7 @@ export async function handler(event) {
 }
 
 async function fetchNow(key, grid) {
-  const candidates = ultraBaseCandidates(new Date(), 6);
+  const candidates = ultraBaseCandidates(new Date(), 2);
   let lastErr;
   for (const base of candidates) {
     try {
@@ -67,7 +67,7 @@ async function fetchNow(key, grid) {
 async function fetchDailyForecast(key, grid) {
   const targets = todayHourKeys();
   const byTime = new Map();
-  const candidates = vilageBaseCandidates(new Date(), 10);
+  const candidates = vilageBaseCandidates(new Date(), 3);
   let lastErr;
 
   for (const base of candidates) {
@@ -89,6 +89,8 @@ async function fetchDailyForecast(key, grid) {
         else if (it.category === "SNO") setIfMissing(cur, "sno", parseSnow(it.fcstValue));
         byTime.set(t, cur);
       }
+      // 오늘 전 시간대 기온이 채워졌으면 추가 조회 중단 (속도·타임아웃 방지)
+      if ([...targets].every((k) => Number.isFinite(byTime.get(k)?.temp))) break;
     } catch (e) {
       lastErr = e;
     }
@@ -153,15 +155,21 @@ async function callKma(endpoint, key, grid, base, rows) {
     nx: String(grid.x),
     ny: String(grid.y),
   });
-  const res = await fetch(`${endpoint}?${params}`);
-  if (!res.ok) throw new Error(`KMA ${res.status}`);
-  const data = await res.json();
-  const code = data?.response?.header?.resultCode;
-  const items = data?.response?.body?.items?.item;
-  if (code !== "00" || !Array.isArray(items)) {
-    throw new Error(data?.response?.header?.resultMsg || `KMA code ${code}`);
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), 9000);
+  try {
+    const res = await fetch(`${endpoint}?${params}`, { signal: ctrl.signal });
+    if (!res.ok) throw new Error(`KMA ${res.status}`);
+    const data = await res.json();
+    const code = data?.response?.header?.resultCode;
+    const items = data?.response?.body?.items?.item;
+    if (code !== "00" || !Array.isArray(items)) {
+      throw new Error(data?.response?.header?.resultMsg || `KMA code ${code}`);
+    }
+    return items;
+  } finally {
+    clearTimeout(timer);
   }
-  return items;
 }
 
 function todayHourKeys() {
@@ -217,7 +225,12 @@ function parseSnow(v) {
 }
 
 function resp(statusCode, body) {
-  return { statusCode, headers: JSON_HEADERS, body: JSON.stringify(body) };
+  // 정상 응답만 60초 캐시. 에러는 캐시하지 않아 일시적 실패가 굳지 않게 한다.
+  const headers =
+    statusCode === 200
+      ? JSON_HEADERS
+      : { "content-type": "application/json; charset=utf-8", "cache-control": "no-store" };
+  return { statusCode, headers, body: JSON.stringify(body) };
 }
 
 function normalizeServiceKey(key) {

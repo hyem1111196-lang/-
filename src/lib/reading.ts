@@ -61,7 +61,7 @@ export function computeReading(
   else primaryHazard = model === "winter" ? "cold" : "heat";
 
   const primaryLevel: StageLevel =
-    primaryHazard === "cold" ? classifyCold(feelsLikeC) : classifyHeat(feelsLikeC);
+    primaryHazard === "cold" ? classifyCold(now.tempC) : classifyHeat(feelsLikeC);
 
   return {
     location,

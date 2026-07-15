@@ -1,9 +1,9 @@
 /**
  * 위험 단계(stage) 판정 엔진.
  *
- * 체감온도를 4단계로 분류한다: 정상 → 관심 → 주의보 → 경보.
- * - 폭염(heat): 체감온도가 높을수록 위험 (기준은 KORAIL 기존 운영값과 동일).
- * - 한파(cold): 체감온도가 낮을수록 위험 (기상청 한파특보 체감온도 기준 기반 — 초안, 안전보건처 검토 대상).
+ * 위험도를 단계로 분류한다.
+ * - 폭염(heat): 체감온도가 높을수록 위험 (KORAIL 운영값 + 중대경보 38°C).
+ * - 한파(cold): 기온(최저기온)이 낮을수록 위험 (기상청 한파특보 최저기온 기준). 관심 단계 없음.
  */
 
 export type HazardKind = "heat" | "cold";
@@ -13,11 +13,10 @@ export type StageLevel = "normal" | "interest" | "warning" | "danger" | "critica
 export const HEAT_THRESHOLDS = { interest: 31, warning: 33, danger: 35, critical: 38 } as const;
 
 /**
- * 한파 단계 임계값 (체감온도 °C 이하).
- * 기상청 한파주의보(-12)·경보(-15) 체감온도 기준에 선제 단계(관심 -10)를 더한 초안.
- * ※ 확정 전 KORAIL 안전보건처 검토 필요.
+ * 한파 단계 임계값 (기온 °C 이하). 기상청 한파특보 최저기온 기준.
+ * 주의보 -12°C 이하, 경보 -15°C 이하. (관심 단계 없음)
  */
-export const COLD_THRESHOLDS = { interest: -10, warning: -12, danger: -15 } as const;
+export const COLD_THRESHOLDS = { warning: -12, danger: -15 } as const;
 
 /** 폭염: 체감온도 → 단계 */
 export function classifyHeat(feelsLikeC: number): StageLevel {
@@ -28,11 +27,10 @@ export function classifyHeat(feelsLikeC: number): StageLevel {
   return "normal";
 }
 
-/** 한파: 체감온도 → 단계 */
-export function classifyCold(feelsLikeC: number): StageLevel {
-  if (feelsLikeC <= COLD_THRESHOLDS.danger) return "danger";
-  if (feelsLikeC <= COLD_THRESHOLDS.warning) return "warning";
-  if (feelsLikeC <= COLD_THRESHOLDS.interest) return "interest";
+/** 한파: 기온(최저기온) → 단계. 관심 단계 없음(정상/주의보/경보). */
+export function classifyCold(tempC: number): StageLevel {
+  if (tempC <= COLD_THRESHOLDS.danger) return "danger";
+  if (tempC <= COLD_THRESHOLDS.warning) return "warning";
   return "normal";
 }
 

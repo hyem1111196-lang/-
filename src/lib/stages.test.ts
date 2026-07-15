@@ -19,10 +19,10 @@ describe("classifyHeat — 폭염 단계", () => {
   });
 });
 
-describe("classifyCold — 한파 단계(초안)", () => {
-  it("체감온도가 낮을수록 위험 단계", () => {
+describe("classifyCold — 한파 단계(기온 기준)", () => {
+  it("기온이 낮을수록 위험 단계 (관심 없음)", () => {
     expect(classifyCold(0)).toBe("normal");
-    expect(classifyCold(COLD_THRESHOLDS.interest)).toBe("interest"); // -10
+    expect(classifyCold(-11)).toBe("normal");
     expect(classifyCold(COLD_THRESHOLDS.warning)).toBe("warning"); // -12
     expect(classifyCold(COLD_THRESHOLDS.danger)).toBe("danger"); // -15
     expect(classifyCold(-25)).toBe("danger");

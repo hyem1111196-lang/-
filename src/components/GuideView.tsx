@@ -15,7 +15,7 @@ const HAZARDS: HazardKind[] = ["heat", "cold"];
 // 위험별 단계 목록 (폭염은 중대경보 포함 5단계, 한파는 4단계)
 const STAGE_ORDER: Record<HazardKind, StageLevel[]> = {
   heat: ["normal", "interest", "warning", "danger", "critical"],
-  cold: ["normal", "interest", "warning", "danger"],
+  cold: ["normal", "warning", "danger"],
 };
 
 export function GuideView({ reading }: Props) {
@@ -114,11 +114,11 @@ export function GuideView({ reading }: Props) {
                 </div>
                 <div>
                   <h4>응급조치</h4>
-                  <ol className="nums">
+                  <ul className="dots">
                     {g.firstAid.map((s, i) => (
                       <li key={i}>{s}</li>
                     ))}
-                  </ol>
+                  </ul>
                 </div>
               </div>
               {g.red && <p className="egc__redline">{g.red}</p>}

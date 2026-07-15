@@ -55,8 +55,8 @@ function levelText(hazard: HazardKind, level: StageLevel, date: Date) {
 
 function valueText(hazard: HazardKind, reading: Reading, hourly: HourlyReading[]) {
   if (hazard === "cold") {
-    const values = [reading.feelsLikeC, ...hourly.map((h) => h.coldFeelsLikeC)].filter(Number.isFinite);
-    return `\uCD5C\uC800 \uCCB4\uAC10\uC628\uB3C4 ${formatTemp(Math.min(...values))}`;
+    const values = [reading.tempC, ...hourly.map((h) => h.tempC)].filter(Number.isFinite);
+    return `\uCD5C\uC800 \uAE30\uC628 ${formatTemp(Math.min(...values))}`;
   }
   const values = [reading.feelsLikeC, ...hourly.map((h) => h.heatFeelsLikeC)].filter(Number.isFinite);
   return `\uCD5C\uACE0 \uCCB4\uAC10\uC628\uB3C4 ${formatTemp(Math.max(...values))}`;
@@ -136,8 +136,8 @@ export function CurrentCard({ reading, hourly, loading, error, onGps, onToggleFa
         <>
           <div className="current__hero current__hero--plain">
             <div className="current__big">
-              <div className="current__feel">{formatTemp(reading.feelsLikeC)}</div>
-              <div className="current__feel-cap">{"\uCCB4\uAC10\uC628\uB3C4"}</div>
+              <div className="current__feel">{formatTemp(reading.primaryHazard === "cold" ? reading.tempC : reading.feelsLikeC)}</div>
+              <div className="current__feel-cap">{reading.primaryHazard === "cold" ? "\uAE30\uC628" : "\uCCB4\uAC10\uC628\uB3C4"}</div>
             </div>
           </div>
 

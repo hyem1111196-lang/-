@@ -11,7 +11,9 @@ interface Props {
 
 export function StageModal({ reading, onConfirm, onClose }: Props) {
   const meta = getStageMeta(reading.primaryHazard, reading.primaryLevel);
-  const headline = `체감온도 ${formatTemp(reading.feelsLikeC)}`;
+  const headline = reading.primaryHazard === "cold"
+    ? `기온 ${formatTemp(reading.tempC)}`
+    : `체감온도 ${formatTemp(reading.feelsLikeC)}`;
 
   return (
     <div className="modal" role="dialog" aria-modal="true" aria-label="위험별 철도 조치사항">

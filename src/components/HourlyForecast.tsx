@@ -37,7 +37,7 @@ const W = 56;
 const CHART_H = 224;
 
 function valueOf(h: HourlyReading, hazard: HazardKind) {
-  if (hazard === "cold") return h.coldFeelsLikeC;
+  if (hazard === "cold") return h.tempC;
   return h.heatFeelsLikeC;
 }
 
@@ -112,7 +112,7 @@ function summary(hourly: HourlyReading[], hazard: HazardKind) {
   const hour = target ? `${target.time.getHours()}\uC2DC` : "-";
   const label =
     hazard === "cold"
-      ? `\uCD5C\uC800 \uCCB4\uAC10\uC628\uB3C4 ${value.toFixed(1)}\u00B0C`
+      ? `\uCD5C\uC800 \uAE30\uC628 ${value.toFixed(1)}\u00B0C`
       : `\uCD5C\uACE0 \uCCB4\uAC10\uC628\uB3C4 ${value.toFixed(1)}\u00B0C`;
   return { label, hour, level };
 }
@@ -132,7 +132,7 @@ export function HourlyForecast({ hourly, reading, loading, hazardOverride }: Pro
 
   const hazard = tabs.includes(selected) ? selected : tabs[0];
   const dayHourly = makeDayTimeline(hourly, reading?.observedAt ?? new Date());
-  const title = "체감온도 예보";
+  const title = hazard === "cold" ? "기온 예보" : "체감온도 예보";
 
   if (loading && dayHourly.length === 0) return <section className="card pad">{"\uC608\uBCF4\uB97C \uBD88\uB7EC\uC624\uB294 \uC911..."}</section>;
   if (dayHourly.length === 0) {

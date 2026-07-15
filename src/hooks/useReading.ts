@@ -42,7 +42,7 @@ function currentHourReading(r: Reading): HourlyReading {
     "winter",
   );
   const heatLevel = classifyHeat(heatFeels);
-  const coldLevel = classifyCold(coldFeels);
+  const coldLevel = classifyCold(r.tempC);
 
   return {
     time: r.observedAt,
@@ -105,7 +105,7 @@ export function useReading() {
             const heatFeels = computeFeelsLike(input, "summer");
             const coldFeels = computeFeelsLike(input, "winter");
             const heatLevel = classifyHeat(heatFeels);
-            const coldLevel = classifyCold(coldFeels);
+            const coldLevel = classifyCold(p.tempC);
             const level = r.model === "winter" ? coldLevel : heatLevel;
             return {
               time: p.time,

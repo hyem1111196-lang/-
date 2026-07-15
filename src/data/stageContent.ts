@@ -36,10 +36,10 @@ export const STAGE_CONTENT: Record<HazardKind, Record<StageLevel, StageMeta>> = 
     critical: { level: "critical", label: "중대경보", emoji: EMOJI.critical, color: SAFETY_COLORS.critical, thresholdLabel: "38°C 이상", headline: "폭염 중대경보 단계", actions: ["휴게시간: 매 시간당 15분 이상 의무 휴식 부여", "[권고]재난 및 안전관리 등 긴급조치 작업 외 옥외작업 중지", "온열질환 의심자 등 휴식시간 추가 배정"] },
   },
   cold: {
-    normal: { level: "normal", label: "정상", emoji: EMOJI.normal, color: SAFETY_COLORS.normal, thresholdLabel: "-10°C 초과", headline: "한파 위험 낮음", actions: ["현재 체감온도는 통상 작업이 가능한 범위입니다.", "따뜻한 물과 방한복 착용 상태를 확인합니다.", "노출 부위 동상 징후와 미끄럼 위험을 수시로 살핍니다."] },
+    normal: { level: "normal", label: "정상", emoji: EMOJI.normal, color: SAFETY_COLORS.normal, thresholdLabel: "-12°C 미만", headline: "한파 위험 낮음", actions: ["통상 작업이 가능한 범위", "개인용 방한장구 사전 준비 및 필요시 즉시 지급", "일상적인 현장 보건 체계 상시 유지"] },
     interest: { level: "interest", label: "관심", emoji: EMOJI.interest, color: SAFETY_COLORS.interest, thresholdLabel: "-10°C 이하", headline: "한파 관심 단계", actions: ["한랭질환 예방교육을 실시하고 작업 전 건강 상태를 확인합니다.", "따뜻한 휴게공간을 확보하고 정기적인 보온 휴식을 제공합니다.", "방한복, 방한장갑, 방한화 등 개인 보온장구를 지급·점검합니다.", "결빙 예상 구간과 계단, 승강장 가장자리의 미끄럼 위험을 확인합니다."] },
-    warning: { level: "warning", label: "주의보", emoji: EMOJI.warning, color: SAFETY_COLORS.warning, thresholdLabel: "-12°C 이하", headline: "한파주의보 단계", actions: ["옥외 작업 시간을 단축하고 취약 작업자는 실내 또는 저강도 업무로 전환합니다.", "정기 휴식 주기를 강화하고 젖은 의복은 즉시 교체합니다.", "결빙·미끄럼 구간에는 제설제 살포와 접근 통제 등 예방 조치를 시행합니다.", "2인 1조 작업과 상호 건강 상태 확인을 원칙으로 합니다."] },
-    danger: { level: "danger", label: "경보", emoji: EMOJI.danger, color: SAFETY_COLORS.danger, thresholdLabel: "-15°C 이하", headline: "한파경보 단계", actions: ["불가피한 경우를 제외하고 옥외 작업을 중지합니다.", "저체온증·동상 의심자는 즉시 작업을 중단시키고 보온 및 응급조치합니다.", "단독 작업을 금지하고 비상 연락체계를 상시 유지합니다.", "야간·새벽 시간대 옥외 작업은 최소 인원으로 제한합니다."] },
+    warning: { level: "warning", label: "주의보", emoji: EMOJI.warning, color: SAFETY_COLORS.warning, thresholdLabel: "-12°C 이하", headline: "한파주의보 단계", actions: ["따뜻한 옷과 방한장구 착용, 따뜻한 물 및 쉼터 제공", "작업시간대 조정 또는 작업시간 단축", "적절한 휴식 부여"] },
+    danger: { level: "danger", label: "경보", emoji: EMOJI.danger, color: SAFETY_COLORS.danger, thresholdLabel: "-15°C 이하", headline: "한파경보 단계", actions: ["따뜻한 옷과 방한장구 착용, 따뜻한 물 및 쉼터 제공", "[권고]추운시간대(새벽) 옥외 작업중지 또는 최소화", "적절한 휴식 부여"] },
     critical: { level: "critical", label: "중대경보", emoji: EMOJI.critical, color: SAFETY_COLORS.critical, thresholdLabel: "-15°C 이하", headline: "한파 중대경보 단계", actions: ["불가피한 경우를 제외하고 옥외 작업을 중지합니다.", "저체온증·동상 의심자는 즉시 작업을 중단시키고 보온 및 응급조치합니다.", "단독 작업을 금지하고 비상 연락체계를 상시 유지합니다."] },
   },
 };
