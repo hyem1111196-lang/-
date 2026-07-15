@@ -11,8 +11,8 @@ export default defineConfig({
       registerType: "autoUpdate",
       includeAssets: ["favicon.svg", "fonts/*.woff2"],
       manifest: {
-        name: "코레일 작업현장 AI 기상정보 대응시스템",
-        short_name: "기상안전 대응",
+        name: "KORAIL 작업현장 AI 기상정보 대응시스템",
+        short_name: "KORAIL 기상안전",
         description:
           "코레일 옥외 작업현장의 폭염·한파 기상정보와 단계별 안전조치를 한 화면에서. 전사 활용.",
         theme_color: "#0066B3",
