@@ -56,7 +56,7 @@ export function RegionPicker({ onQuery }: Props) {
         </select>
       </div>
       <button className="btn btn--brand region__go" onClick={submit} disabled={!ready}>
-        이 지역 체감온도 조회
+        이 지역 조회
       </button>
     </section>
   );

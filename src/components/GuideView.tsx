@@ -58,7 +58,7 @@ export function GuideView({ reading }: Props) {
                   <li key={lv}>
                     <span className="ref__dot" style={{ background: m.color }} />
                     <b>{m.label}</b>
-                    <span className="ref__th">{m.thresholdLabel}</span>
+                    <span className="ref__th">{tab === "cold" ? "기온 " : "체감온도 "}{m.thresholdLabel}</span>
                   </li>
                 );
               })}
@@ -74,7 +74,7 @@ export function GuideView({ reading }: Props) {
                   <div className="rail-actions__head">
                     <span className="ref__dot" style={{ background: m.color }} />
                     <b>{m.label}</b>
-                    <span>{m.thresholdLabel}</span>
+                    <span>{tab === "cold" ? "기온 " : "체감온도 "}{m.thresholdLabel}</span>
                   </div>
                   <p className="rail-actions__headline">{m.headline}</p>
                   <ul className="acts">
