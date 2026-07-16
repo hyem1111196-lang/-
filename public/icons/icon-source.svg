@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="코레일 작업현장 안전">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="KORAIL 작업현장 안전">
   <defs>
     <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
       <stop offset="0" stop-color="#0a78cc"/>
@@ -7,10 +7,12 @@
   </defs>
   <rect width="512" height="512" fill="url(#bg)"/>
   <!-- 온도계 -->
-  <rect x="228" y="112" width="56" height="212" rx="28" fill="#ffffff"/>
-  <circle cx="256" cy="366" r="66" fill="#ffffff"/>
-  <rect x="240" y="196" width="32" height="150" rx="16" fill="#F7BC60"/>
-  <circle cx="256" cy="366" r="44" fill="#F7BC60"/>
+  <rect x="230" y="72" width="52" height="176" rx="26" fill="#ffffff"/>
+  <circle cx="256" cy="290" r="58" fill="#ffffff"/>
+  <rect x="242" y="150" width="28" height="140" rx="14" fill="#F7BC60"/>
+  <circle cx="256" cy="290" r="38" fill="#F7BC60"/>
   <!-- 시안 포인트 -->
-  <circle cx="372" cy="150" r="30" fill="#00AFDC"/>
+  <circle cx="336" cy="98" r="24" fill="#00AFDC"/>
+  <!-- KORAIL 워드마크 -->
+  <text x="256" y="436" font-family="Arial, Helvetica, sans-serif" font-size="76" font-weight="800" letter-spacing="2" text-anchor="middle" fill="#ffffff">KORAIL</text>
 </svg>
