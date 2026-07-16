@@ -8,14 +8,15 @@ const HOUR_MS = 60 * 60 * 1000;
 export async function onRequest(context) {
   const { request, env } = context;
   const key = env.KMA_SERVICE_KEY;
-  const q = new URL(request.url).searchParams;
+  const url = new URL(request.url);
+  const q = url.searchParams;
   const nx = Number(q.get("nx"));
   const ny = Number(q.get("ny"));
   const lat = Number(q.get("lat"));
   const lon = Number(q.get("lon"));
   const mode = q.get("mode");
 
-  // 격자(nx,ny)가 오면 그대로 사용 → 같은 5km 셀의 요청이 동일 URL이 되어 CDN 캐시를 공유한다.
+  // 격자(nx,ny)가 오면 그대로 사용 → 같은 5km 셀의 요청이 동일 URL이 되어 캐시를 공유한다.
   let grid;
   if (Number.isFinite(nx) && Number.isFinite(ny)) {
     grid = { x: nx, y: ny };
@@ -28,13 +29,24 @@ export async function onRequest(context) {
     return resp(503, { error: "KMA_SERVICE_KEY not configured" });
   }
 
+  // 엣지 캐시: 같은 격자+모드 요청은 저장된 응답을 재사용 → 기상청 API 호출(일일 한도)을 크게 절감.
+  // 캐시 유효기간은 응답의 Cache-Control(현재 10분 / 예보 30분)을 따른다. 에러는 저장하지 않는다.
+  const cache = caches.default;
+  const cacheKey = new Request(url.toString(), { method: "GET" });
+  const cached = await cache.match(cacheKey);
+  if (cached) return cached;
+
   try {
+    let response;
     if (mode === "hourly") {
       const hourly = await fetchDailyForecast(key, grid);
-      return resp(200, { hourly, grid, source: "getVilageFcst" }, 1800);
+      response = resp(200, { hourly, grid, source: "getVilageFcst" }, 1800);
+    } else {
+      const now = await fetchNow(key, grid);
+      response = resp(200, { ...now, grid, source: "getUltraSrtNcst" }, 600);
     }
-    const now = await fetchNow(key, grid);
-    return resp(200, { ...now, grid, source: "getUltraSrtNcst" }, 600);
+    context.waitUntil(cache.put(cacheKey, response.clone()));
+    return response;
   } catch (err) {
     return resp(502, { error: String(err && err.message ? err.message : err) });
   }

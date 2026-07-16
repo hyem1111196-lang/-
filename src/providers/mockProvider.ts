@@ -82,6 +82,7 @@ export function createMockProvider(): WeatherProvider {
           pty: n.pty,
           sky: n.sky,
           rn1mm: n.rn1mm,
+          source: "mock",
         });
       }
       return out;

@@ -19,7 +19,7 @@ export default function App() {
   const [forecastHazard, setForecastHazard] = useState<HazardKind | null>(null);
   const [showOnboarding, setShowOnboarding] = useState(true);
 
-  const { reading, hourly, loading, error, queryByCoords, queryByGps } = useReading();
+  const { reading, hourly, hourlyMock, loading, error, queryByCoords, queryByGps } = useReading();
   const favorites = useFavorites();
 
   const booted = useRef(false);
@@ -98,6 +98,7 @@ export default function App() {
               reading={reading}
               loading={loading}
               hazardOverride={forecastHazard}
+              dataMock={hourlyMock}
             />
           )}
 

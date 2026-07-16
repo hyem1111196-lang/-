@@ -80,6 +80,7 @@ export function createKmaProvider(): WeatherProvider {
         pty: Number.isFinite(p.pty) ? (p.pty as number) : 0,
         sky: Number.isFinite(p.sky) ? (p.sky as number) : undefined,
         rn1mm: [2, 3, 6, 7].includes(Number(p.pty)) && Number.isFinite(p.sno) ? (p.sno as number) : Number.isFinite(p.rn1) ? (p.rn1 as number) : 0,
+        source: "kma" as const,
       }));
     },
   };

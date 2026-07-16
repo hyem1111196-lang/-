@@ -19,6 +19,7 @@ export interface HourlyPoint {
   pty: number;
   sky?: number;
   rn1mm: number;
+  source: "kma" | "mock";
 }
 
 export interface WeatherProvider {

@@ -74,6 +74,7 @@ export function useReading() {
   const providerRef = useRef(createWeatherProvider());
   const [reading, setReading] = useState<Reading | null>(null);
   const [hourly, setHourly] = useState<HourlyReading[]>([]);
+  const [hourlyMock, setHourlyMock] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const reqId = useRef(0);
@@ -94,9 +95,12 @@ export function useReading() {
         const r = computeReading(queriedNow, label, mode);
         setReading(r);
         setHourly([]);
+        setHourlyMock(false);
 
         hourlyPromise.then((points) => {
           if (id !== reqId.current || points.length === 0) return;
+          // 예보가 임시값(Mock)이면 표시 — 실시간 값이 아닌데 진짜처럼 보이지 않도록.
+          setHourlyMock(points[0]?.source === "mock");
           const mapped = points.map<HourlyReading>((p) => {
             const humidityPct = Number.isFinite(p.humidityPct) && p.humidityPct > 0 ? p.humidityPct : r.humidityPct;
             const windMs = Number.isFinite(p.windMs) ? p.windMs : r.windMs;
@@ -156,5 +160,5 @@ export function useReading() {
     [queryByCoords, queryByGps],
   );
 
-  return { reading, hourly, loading, error, queryByCoords, queryByGps, refresh };
+  return { reading, hourly, hourlyMock, loading, error, queryByCoords, queryByGps, refresh };
 }

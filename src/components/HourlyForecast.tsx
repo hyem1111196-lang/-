@@ -9,6 +9,7 @@ interface Props {
   reading: Reading | null;
   loading: boolean;
   hazardOverride?: HazardKind | null;
+  dataMock?: boolean;
 }
 
 const HAZARD_LABEL: Record<HazardKind, string> = {
@@ -121,7 +122,7 @@ function levelLabel(level: StageLevel) {
   return level === "normal" ? "\uC548\uC804" : level === "interest" ? "\uAD00\uC2EC" : level === "warning" ? "\uC8FC\uC758\uBCF4" : level === "critical" ? "\uC911\uB300\uACBD\uBCF4" : "\uACBD\uBCF4";
 }
 
-export function HourlyForecast({ hourly, reading, loading, hazardOverride }: Props) {
+export function HourlyForecast({ hourly, reading, loading, hazardOverride, dataMock }: Props) {
   const tabs = seasonHazards(reading?.observedAt ?? new Date());
   const [selected, setSelected] = useState<HazardKind>(hazardOverride ?? reading?.primaryHazard ?? tabs[0]);
 
@@ -153,6 +154,10 @@ export function HourlyForecast({ hourly, reading, loading, hazardOverride }: Pro
   return (
     <section className="forecast">
       <div className="section-title"><b>{HAZARD_LABEL[hazard]}</b> {title}</div>
+
+      {dataMock && (
+        <p className="current__mockwarn">{"⚠️ 실시간 연결 실패 — 예보는 임시값입니다. 담당자에게 문의하세요"}</p>
+      )}
 
       {tabs.length > 1 && (
         <div className="forecast-tabs" role="tablist" aria-label={"예보 위험 선택"}>
