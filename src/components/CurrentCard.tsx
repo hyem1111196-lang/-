@@ -122,6 +122,10 @@ export function CurrentCard({ reading, hourly, loading, error, onGps, onToggleFa
       </button>
       <p className="privacy-note">{"\uC704\uCE58 \uC870\uD68C\uB9CC \uC0AC\uC6A9\uD558\uBA70 \uB530\uB85C \uC815\uBCF4\uB97C \uAC00\uC838\uAC00\uC9C0 \uC54A\uC2B5\uB2C8\uB2E4."}</p>
 
+      {reading?.source === "mock" && (
+        <p className="current__mockwarn">{"\u26A0\uFE0F \uC2E4\uC2DC\uAC04 \uC5F0\uACB0 \uC2E4\uD328 \u2014 \uB2F4\uB2F9\uC790\uC5D0\uAC8C \uBB38\uC758\uD558\uC138\uC694"}</p>
+      )}
+
       {error && <p className="current__error">{error}</p>}
 
       {!reading && !error && (

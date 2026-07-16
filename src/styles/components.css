@@ -205,6 +205,18 @@
   font-size: var(--text-sm);
   font-weight: 600;
 }
+.current__mockwarn {
+  background: #fef3c7;
+  color: #92400e;
+  border: 1px solid #f59e0b;
+  border-left: 4px solid #f59e0b;
+  border-radius: var(--r-md);
+  padding: 10px 12px;
+  margin-bottom: var(--sp-2);
+  font-size: var(--text-sm);
+  font-weight: 800;
+  line-height: 1.4;
+}
 .current__hero {
   display: flex;
   align-items: center;
