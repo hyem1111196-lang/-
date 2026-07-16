@@ -186,7 +186,7 @@ export function HourlyForecast({ hourly, reading, loading, hazardOverride }: Pro
 
       <div className="forecast__advice card">
         <div className="forecast-actions" style={{ "--stage": stageMeta.color } as CSSProperties}>
-          <h3>{HAZARD_LABEL[hazard]} {levelLabel(stage)} {"\uB2E8\uACC4 \uC870\uCE58\uC0AC\uD56D"}</h3>
+          <h3>{"\uC624\uB298 \uC608\uC0C1 \uCD5C\uACE0 \u00B7 "}{HAZARD_LABEL[hazard]} {levelLabel(stage)} {"\uB2E8\uACC4 \uC870\uCE58\uC0AC\uD56D"}</h3>
           <ul className="acts">
             {stageMeta.actions.map((action, i) => <li key={i}>{action}</li>)}
           </ul>
