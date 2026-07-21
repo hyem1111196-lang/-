@@ -73,6 +73,9 @@ function WeatherFocus({ reading, hourly, onOpenSafety, onOpenForecast }: { readi
     return { level, date };
   };
 
+  // 예보(단기예보)가 아직 안 왔으면 최고값을 현재값으로 계산하지 않고 '불러오는 중' 표시.
+  const forecastReady = hourly.length > 0;
+
   return (
     <div className="weather-focus">
       <div className="weather-focus__main">
@@ -84,13 +87,19 @@ function WeatherFocus({ reading, hourly, onOpenSafety, onOpenForecast }: { readi
           const { level, date } = summaryFor(hazard);
           const meta = getStageMeta(hazard, level);
           return (
-            <button key={hazard} className={`weather-focus__chip level-${level}`} style={{ "--stage": meta.color } as CSSProperties} onClick={() => onOpenForecast(hazard)}>
+            <button key={hazard} className={`weather-focus__chip ${forecastReady ? `level-${level}` : "is-loading"}`} style={{ "--stage": forecastReady ? meta.color : "#94a3b8" } as CSSProperties} onClick={() => onOpenForecast(hazard)}>
               <div className="weather-focus__chip-head">
                 <b>{HAZARD_LABEL[hazard]}</b>
                 <span className="weather-focus__chip-cap">{"오늘 최고 위험값"}</span>
               </div>
-              <span className="weather-focus__chip-status">{dateShort(date)} <small>{LEVEL_LABEL[level]}</small></span>
-              <em>{valueText(hazard, reading, hourly)}</em>
+              {forecastReady ? (
+                <>
+                  <span className="weather-focus__chip-status">{dateShort(date)} <small>{LEVEL_LABEL[level]}</small></span>
+                  <em>{valueText(hazard, reading, hourly)}</em>
+                </>
+              ) : (
+                <span className="weather-focus__chip-status">{"불러오는 중..."}</span>
+              )}
             </button>
           );
         })}

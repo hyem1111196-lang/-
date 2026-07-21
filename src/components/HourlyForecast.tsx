@@ -161,6 +161,8 @@ export function HourlyForecast({ hourly, ultraHourly, reading, loading, hazardOv
   const stage = maxStage(peakSource, hazard);
   const stageMeta = STAGE_CONTENT[hazard][stage];
   const chartWidth = chartData.length * W;
+  // 하루 예보(단기예보)가 아직 안 왔으면 '오늘 최고'를 계산하지 않고 '불러오는 중' 표시.
+  const peakReady = dayHourly.length > 0;
 
   return (
     <section className="forecast">
@@ -187,10 +189,10 @@ export function HourlyForecast({ hourly, ultraHourly, reading, loading, hazardOv
         </div>
       )}
 
-      <div className="forecast-peak card" style={{ "--stage": STAGE_VAR[top.level] } as CSSProperties}>
+      <div className="forecast-peak card" style={{ "--stage": peakReady ? STAGE_VAR[top.level] : "#94a3b8" } as CSSProperties}>
         <span className="forecast-peak__kicker">{"\uC624\uB298 0\uC2DC~24\uC2DC \uC911 \uCD5C\uACE0 \uC704\uD5D8\uAC12"}</span>
-        <strong>{top.label}</strong>
-        <span>{top.hour} · {levelLabel(top.level)}</span>
+        <strong>{peakReady ? top.label : "불러오는 중..."}</strong>
+        {peakReady && <span>{top.hour} · {levelLabel(top.level)}</span>}
       </div>
 
       <p style={{ fontSize: "0.8rem", color: "#64748b", fontWeight: 600, margin: "2px 2px 6px" }}>{"⏱ 앞으로 6시간 · 매시간 갱신"}</p>
