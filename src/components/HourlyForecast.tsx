@@ -136,8 +136,12 @@ export function HourlyForecast({ hourly, ultraHourly, reading, loading, hazardOv
   const dayHourly = makeDayTimeline(hourly, reading?.observedAt ?? new Date());
   // 그래프: 초단기예보(앞 6시간, 1시간마다 갱신)만 사용. 로딩 중엔 비워둠 → 24개→6개 깜빡임 방지.
   const chartData = [...ultraHourly].sort((a, b) => a.time.getTime() - b.time.getTime());
-  // 오늘 예상 최고: 하루 전체(단기예보) 우선, 없으면 초단기예보로 대체.
-  const peakSource = dayHourly.length ? dayHourly : chartData;
+  // 오늘 예상 최고: 하루 전체(단기예보) 기준이되, 그래프에 보이는 앞 6시간은
+  // 초단기예보 값으로 덮어써 그래프 막대와 최고값이 어긋나지 않게 한다.
+  const ultraByHour = new Map(chartData.map((h) => [h.time.getHours(), h]));
+  const peakSource = dayHourly.length
+    ? dayHourly.map((h) => ultraByHour.get(h.time.getHours()) ?? h)
+    : chartData;
   const hasAny = dayHourly.length > 0 || chartData.length > 0;
   const title = hazard === "cold" ? "기온 예보" : "체감온도 예보";
 

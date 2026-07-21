@@ -47,12 +47,6 @@ function dateShort(date: Date) {
   return `${date.getMonth() + 1}/${date.getDate()}`;
 }
 
-function levelText(hazard: HazardKind, level: StageLevel, date: Date) {
-  if (level === "normal") return `${dateShort(date)} ${LEVEL_LABEL.normal}`;
-  if (level === "interest") return `${dateShort(date)} ${LEVEL_LABEL.interest}`;
-  return `${dateShort(date)} ${HAZARD_LABEL[hazard]}${LEVEL_LABEL[level]}`;
-}
-
 function valueText(hazard: HazardKind, reading: Reading, hourly: HourlyReading[]) {
   if (hazard === "cold") {
     const values = [reading.tempC, ...hourly.map((h) => h.tempC)].filter(Number.isFinite);
@@ -91,10 +85,12 @@ function WeatherFocus({ reading, hourly, onOpenSafety, onOpenForecast }: { readi
           const meta = getStageMeta(hazard, level);
           return (
             <button key={hazard} className={`weather-focus__chip level-${level}`} style={{ "--stage": meta.color } as CSSProperties} onClick={() => onOpenForecast(hazard)}>
-              <b>{HAZARD_LABEL[hazard]}</b>
-              <span>{levelText(hazard, level, date)}</span>
+              <div className="weather-focus__chip-head">
+                <b>{HAZARD_LABEL[hazard]}</b>
+                <span className="weather-focus__chip-cap">{"오늘 최고 위험값"}</span>
+              </div>
+              <span className="weather-focus__chip-status">{dateShort(date)} <small>{LEVEL_LABEL[level]}</small></span>
               <em>{valueText(hazard, reading, hourly)}</em>
-              <small>{LEVEL_LABEL[level]}</small>
             </button>
           );
         })}

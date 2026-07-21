@@ -1320,6 +1320,26 @@
   color: var(--text-2);
 }
 
+.weather-focus__chip-head {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.weather-focus__chip .weather-focus__chip-cap {
+  font-size: 10px;
+  font-weight: 700;
+  opacity: 0.6;
+  letter-spacing: -0.2px;
+  color: inherit;
+}
+
+.weather-focus__chip .weather-focus__chip-status {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
 .weather-focus__chip.level-interest {
   background: var(--stage-interest-soft);
   border-color: var(--stage-interest-line);
