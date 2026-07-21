@@ -145,8 +145,9 @@ export function HourlyForecast({ hourly, ultraHourly, reading, loading, hazardOv
   const hasAny = dayHourly.length > 0 || chartData.length > 0;
   const title = hazard === "cold" ? "기온 예보" : "체감온도 예보";
 
-  if (loading && !hasAny) return <section className="card pad">{"\uC608\uBCF4\uB97C \uBD88\uB7EC\uC624\uB294 \uC911..."}</section>;
   if (!hasAny) {
+    // \uC870\uD68C \uC911\uC774\uAC70\uB098 \uD604\uC7AC\uAC12\uC774 \uC774\uBBF8 \uC788\uC73C\uBA74 \uC608\uBCF4\uAC00 \uC624\uB294 \uC911 \u2192 \uB85C\uB529 \uD45C\uC2DC. \uC544\uC9C1 \uC870\uD68C \uC804\uC77C \uB54C\uB9CC \uC548\uB0B4.
+    if (loading || reading) return <section className="card pad">{"\uC608\uBCF4\uB97C \uBD88\uB7EC\uC624\uB294 \uC911..."}</section>;
     return (
       <section className="card pad empty">
         <p>{"\uC2DC\uAC04\uB300\uBCC4 \uC608\uBCF4 \uB370\uC774\uD130\uAC00 \uC5C6\uC2B5\uB2C8\uB2E4."}</p>
