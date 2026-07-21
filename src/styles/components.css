@@ -1214,7 +1214,7 @@
 
 .weather-focus__chips {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: 1fr;
   gap: 6px;
 }
 
@@ -1289,13 +1289,14 @@
 
 .weather-focus__chips {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: 1fr;
   gap: 6px;
 }
 
 .weather-focus__chip {
   --stage: var(--stage-normal);
   min-height: 54px;
+  word-break: keep-all;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
@@ -1323,7 +1324,8 @@
 .weather-focus__chip-head {
   display: flex;
   align-items: baseline;
-  gap: 6px;
+  flex-wrap: wrap;
+  gap: 2px 6px;
 }
 
 .weather-focus__chip .weather-focus__chip-cap {
@@ -1422,11 +1424,12 @@
 }
 
 .weather-focus__chips {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: 1fr;
 }
 
 .weather-focus__chip {
   min-height: 72px;
+  word-break: keep-all;
   background: #fff !important;
   border: 1px solid var(--line) !important;
   border-left: 4px solid var(--stage) !important;
