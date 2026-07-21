@@ -35,7 +35,7 @@ const STAGE_VAR: Record<StageLevel, string> = {
   critical: "var(--stage-critical)",
 };
 
-const W = 56;
+const VIEW_W = 340; // 고정 뷰박스 폭 — 막대 개수가 5~6개로 달라져도 동일 비율로 균등 분배
 const CHART_H = 224;
 
 function valueOf(h: HourlyReading, hazard: HazardKind) {
@@ -77,7 +77,9 @@ function renderBars(hourly: HourlyReading[], hazard: HazardKind) {
   const span = Math.max(6, max - min);
   const H = 150;
   const padTop = 26;
-  const barW = 36;
+  const n = hourly.length || 1;
+  const slot = VIEW_W / n; // \uB9C9\uB300 \uD55C \uCE78 \uD3ED \u2014 \uAC1C\uC218\uC5D0 \uB9DE\uCDB0 \uADE0\uB4F1 \uBD84\uBC30
+  const barW = Math.min(38, slot * 0.5);
   const extreme = isCold ? min : max;
 
   return hourly.map((h, i) => {
@@ -85,15 +87,15 @@ function renderBars(hourly: HourlyReading[], hazard: HazardKind) {
     const level = levelOf(h, hazard);
     const ratio = (value - min) / span;
     const barH = padTop + ratio * H;
-    const x = i * W + (W - barW) / 2;
+    const cx = (i + 0.5) * slot;
     const y = 190 - barH;
     const isExtreme = value === extreme;
     const label = `${value.toFixed(1)}\u00B0`;
     return (
       <g key={`${h.time.toISOString()}-${i}`}>
-        <rect x={x} y={y} width={barW} height={barH} rx="6" fill={STAGE_VAR[level]} />
-        <text x={i * W + W / 2} y={y - 6} className={`forecast__val ${isExtreme ? "is-extreme" : ""}`}>{label}</text>
-        <text x={i * W + W / 2} y={214} className="forecast__hr">{`${h.time.getHours()}\uC2DC`}</text>
+        <rect x={cx - barW / 2} y={y} width={barW} height={barH} rx="6" fill={STAGE_VAR[level]} />
+        <text x={cx} y={y - 6} className={`forecast__val ${isExtreme ? "is-extreme" : ""}`}>{label}</text>
+        <text x={cx} y={214} className="forecast__hr">{`${h.time.getHours()}\uC2DC`}</text>
       </g>
     );
   });
@@ -160,7 +162,7 @@ export function HourlyForecast({ hourly, ultraHourly, reading, loading, hazardOv
   const top = summary(peakSource, hazard);
   const stage = maxStage(peakSource, hazard);
   const stageMeta = STAGE_CONTENT[hazard][stage];
-  const chartWidth = chartData.length * W;
+  const chartWidth = VIEW_W;
   // 하루 예보(단기예보)가 아직 안 왔으면 '오늘 최고'를 계산하지 않고 '불러오는 중' 표시.
   const peakReady = dayHourly.length > 0;
 
