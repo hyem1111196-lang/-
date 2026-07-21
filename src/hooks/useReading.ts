@@ -139,7 +139,10 @@ export function useReading() {
         ultraPromise.then((points) => {
           if (id !== reqId.current || points.length === 0) return;
           setUltraMock(points[0]?.source === "mock");
-          setUltraHourly(points.map((p) => toHourlyReading(p, r)));
+          // 예보는 다음 시각부터 — 이미 지난 시각(현재 시 포함)은 제외해 항상 미래만 표시.
+          const now = Date.now();
+          const upcoming = points.filter((p) => p.time.getTime() > now);
+          setUltraHourly((upcoming.length ? upcoming : points).map((p) => toHourlyReading(p, r)));
         });
       } catch {
         if (id === reqId.current) setError("날씨 조회에 실패했습니다. 잠시 후 다시 시도해주세요.");
