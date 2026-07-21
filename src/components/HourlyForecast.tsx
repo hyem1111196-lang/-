@@ -197,8 +197,6 @@ export function HourlyForecast({ hourly, ultraHourly, reading, loading, hazardOv
         {peakReady && <span>{top.hour} · {levelLabel(top.level)}</span>}
       </div>
 
-      <p style={{ fontSize: "0.8rem", color: "#64748b", fontWeight: 600, margin: "2px 2px 6px" }}>{"⏱ 앞으로 6시간 · 매시간 갱신"}</p>
-
       <div className="forecast__chartwrap" aria-label="hourly forecast horizontal scroll area">
         <div className="forecast__unit">{unit}</div>
         {chartData.length > 0 ? (
