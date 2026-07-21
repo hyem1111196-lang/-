@@ -134,16 +134,15 @@ export function HourlyForecast({ hourly, ultraHourly, reading, loading, hazardOv
 
   const hazard = tabs.includes(selected) ? selected : tabs[0];
   const dayHourly = makeDayTimeline(hourly, reading?.observedAt ?? new Date());
-  // 그래프: 초단기예보(앞 6시간, 1시간마다 갱신). 없으면 단기예보로 대체.
-  const chartData = ultraHourly.length
-    ? [...ultraHourly].sort((a, b) => a.time.getTime() - b.time.getTime())
-    : dayHourly;
+  // 그래프: 초단기예보(앞 6시간, 1시간마다 갱신)만 사용. 로딩 중엔 비워둠 → 24개→6개 깜빡임 방지.
+  const chartData = [...ultraHourly].sort((a, b) => a.time.getTime() - b.time.getTime());
   // 오늘 예상 최고: 하루 전체(단기예보) 우선, 없으면 초단기예보로 대체.
   const peakSource = dayHourly.length ? dayHourly : chartData;
+  const hasAny = dayHourly.length > 0 || chartData.length > 0;
   const title = hazard === "cold" ? "기온 예보" : "체감온도 예보";
 
-  if (loading && chartData.length === 0) return <section className="card pad">{"\uC608\uBCF4\uB97C \uBD88\uB7EC\uC624\uB294 \uC911..."}</section>;
-  if (chartData.length === 0) {
+  if (loading && !hasAny) return <section className="card pad">{"\uC608\uBCF4\uB97C \uBD88\uB7EC\uC624\uB294 \uC911..."}</section>;
+  if (!hasAny) {
     return (
       <section className="card pad empty">
         <p>{"\uC2DC\uAC04\uB300\uBCC4 \uC608\uBCF4 \uB370\uC774\uD130\uAC00 \uC5C6\uC2B5\uB2C8\uB2E4."}</p>
@@ -193,9 +192,13 @@ export function HourlyForecast({ hourly, ultraHourly, reading, loading, hazardOv
 
       <div className="forecast__chartwrap" aria-label="hourly forecast horizontal scroll area">
         <div className="forecast__unit">{unit}</div>
-        <svg className="forecast__chart" width={chartWidth} height={CHART_H} viewBox={`0 0 ${chartWidth} ${CHART_H}`} preserveAspectRatio="none" role="img" aria-label={title}>
-          {renderBars(chartData, hazard)}
-        </svg>
+        {chartData.length > 0 ? (
+          <svg className="forecast__chart" width={chartWidth} height={CHART_H} viewBox={`0 0 ${chartWidth} ${CHART_H}`} preserveAspectRatio="none" role="img" aria-label={title}>
+            {renderBars(chartData, hazard)}
+          </svg>
+        ) : (
+          <div style={{ height: CHART_H, display: "flex", alignItems: "center", justifyContent: "center", color: "#64748b", fontWeight: 600 }}>{"예보 그래프 불러오는 중..."}</div>
+        )}
       </div>
 
       <div className="forecast__advice card">
