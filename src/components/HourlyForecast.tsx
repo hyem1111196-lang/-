@@ -77,7 +77,7 @@ function renderBars(hourly: HourlyReading[], hazard: HazardKind) {
   const span = Math.max(6, max - min);
   const H = 150;
   const padTop = 26;
-  const barW = 24;
+  const barW = 36;
   const extreme = isCold ? min : max;
 
   return hourly.map((h, i) => {
@@ -193,7 +193,7 @@ export function HourlyForecast({ hourly, ultraHourly, reading, loading, hazardOv
 
       <div className="forecast__chartwrap" aria-label="hourly forecast horizontal scroll area">
         <div className="forecast__unit">{unit}</div>
-        <svg className="forecast__chart" width={chartWidth} height={CHART_H} viewBox={`0 0 ${chartWidth} ${CHART_H}`} role="img" aria-label={`0\uC2DC~24\uC2DC ${title}`}>
+        <svg className="forecast__chart" width={chartWidth} height={CHART_H} viewBox={`0 0 ${chartWidth} ${CHART_H}`} preserveAspectRatio="none" role="img" aria-label={title}>
           {renderBars(chartData, hazard)}
         </svg>
       </div>
