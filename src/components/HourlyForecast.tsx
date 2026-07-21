@@ -159,8 +159,13 @@ export function HourlyForecast({ hourly, ultraHourly, reading, loading, hazardOv
   }
 
   const unit = "\u00B0C";
-  const top = summary(peakSource, hazard);
-  const stage = maxStage(peakSource, hazard);
+  // \uCD5C\uACE0\uAC12\uC740 \uD604\uC7AC \uC2DC\uAC01\uBD80\uD130 \uC55E\uC73C\uB85C\uB9CC \uACC4\uC0B0 \u2014 \uC9C0\uB09C \uC2DC\uAC04\uC758 \uCC44\uC6C0\uAC12(\uC5C9\uB6B1\uD55C 4\uC2DC \uB4F1) \uC81C\uC678.
+  const nowHourStart = new Date();
+  nowHourStart.setMinutes(0, 0, 0);
+  const futureSrc = peakSource.filter((h) => h.time.getTime() >= nowHourStart.getTime());
+  const peakSrc = futureSrc.length ? futureSrc : peakSource;
+  const top = summary(peakSrc, hazard);
+  const stage = maxStage(peakSrc, hazard);
   const stageMeta = STAGE_CONTENT[hazard][stage];
   const chartWidth = VIEW_W;
   // 하루 예보(단기예보)가 아직 안 왔으면 '오늘 최고'를 계산하지 않고 '불러오는 중' 표시.
@@ -192,7 +197,7 @@ export function HourlyForecast({ hourly, ultraHourly, reading, loading, hazardOv
       )}
 
       <div className="forecast-peak card" style={{ "--stage": peakReady ? STAGE_VAR[top.level] : "#94a3b8" } as CSSProperties}>
-        <span className="forecast-peak__kicker">{"\uC624\uB298 0\uC2DC~24\uC2DC \uC911 \uCD5C\uACE0 \uC704\uD5D8\uAC12"}</span>
+        <span className="forecast-peak__kicker">{"\uC55E\uC73C\uB85C \uCD5C\uACE0 \uC704\uD5D8\uAC12"}</span>
         <strong>{peakReady ? top.label : "불러오는 중..."}</strong>
         {peakReady && <span>{top.hour} · {levelLabel(top.level)}</span>}
       </div>
@@ -210,7 +215,7 @@ export function HourlyForecast({ hourly, ultraHourly, reading, loading, hazardOv
 
       <div className="forecast__advice card">
         <div className="forecast-actions" style={{ "--stage": stageMeta.color } as CSSProperties}>
-          <h3>{"\uC624\uB298 \uC608\uC0C1 \uCD5C\uACE0 \u00B7 "}{HAZARD_LABEL[hazard]} {levelLabel(stage)} {"\uB2E8\uACC4 \uC870\uCE58\uC0AC\uD56D"}</h3>
+          <h3>{"\uC55E\uC73C\uB85C \uCD5C\uACE0 \u00B7 "}{HAZARD_LABEL[hazard]} {levelLabel(stage)} {"\uB2E8\uACC4 \uC870\uCE58\uC0AC\uD56D"}</h3>
           <ul className="acts">
             {stageMeta.actions.map((action, i) => <li key={i}>{action}</li>)}
           </ul>

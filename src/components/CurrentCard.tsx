@@ -47,12 +47,20 @@ function dateShort(date: Date) {
   return `${date.getMonth() + 1}/${date.getDate()}`;
 }
 
+/** 현재 시각(정시)부터 앞으로의 예보만 — 지난 시간의 채움값(엉뚱한 최고값)을 제외 */
+function futureOnly(hourly: HourlyReading[]): HourlyReading[] {
+  const start = new Date();
+  start.setMinutes(0, 0, 0);
+  const future = hourly.filter((h) => h.time.getTime() >= start.getTime());
+  return future.length ? future : hourly;
+}
+
 function valueText(hazard: HazardKind, reading: Reading, hourly: HourlyReading[]) {
   if (hazard === "cold") {
-    const values = [reading.tempC, ...hourly.map((h) => h.tempC)].filter(Number.isFinite);
+    const values = [reading.tempC, ...futureOnly(hourly).map((h) => h.tempC)].filter(Number.isFinite);
     return `\uCD5C\uC800 \uAE30\uC628 ${formatTemp(Math.min(...values))}`;
   }
-  const values = [reading.feelsLikeC, ...hourly.map((h) => h.heatFeelsLikeC)].filter(Number.isFinite);
+  const values = [reading.feelsLikeC, ...futureOnly(hourly).map((h) => h.heatFeelsLikeC)].filter(Number.isFinite);
   return `\uCD5C\uACE0 \uCCB4\uAC10\uC628\uB3C4 ${formatTemp(Math.max(...values))}`;
 }
 
@@ -67,7 +75,7 @@ function WeatherFocus({ reading, hourly, onOpenSafety, onOpenForecast }: { readi
 
   const summaryFor = (hazard: HazardKind) => {
     const currentLevel = reading.primaryHazard === hazard ? reading.primaryLevel : "normal";
-    const forecastItems = hourly.map((h) => ({ time: h.time, level: h[HAZARD_STAGE_KEY[hazard]] as StageLevel }));
+    const forecastItems = futureOnly(hourly).map((h) => ({ time: h.time, level: h[HAZARD_STAGE_KEY[hazard]] as StageLevel }));
     const level = maxLevel([currentLevel, ...forecastItems.map((item) => item.level)]);
     const date = level !== "normal" ? forecastItems.find((item) => item.level === level)?.time ?? reading.observedAt : reading.observedAt;
     return { level, date };
@@ -90,7 +98,7 @@ function WeatherFocus({ reading, hourly, onOpenSafety, onOpenForecast }: { readi
             <button key={hazard} className={`weather-focus__chip ${forecastReady ? `level-${level}` : "is-loading"}`} style={{ "--stage": forecastReady ? meta.color : "#94a3b8" } as CSSProperties} onClick={() => onOpenForecast(hazard)}>
               <div className="weather-focus__chip-head">
                 <b>{HAZARD_LABEL[hazard]}</b>
-                <span className="weather-focus__chip-cap">{"오늘 최고 위험값"}</span>
+                <span className="weather-focus__chip-cap">{"앞으로 최고 위험값"}</span>
               </div>
               {forecastReady ? (
                 <>
