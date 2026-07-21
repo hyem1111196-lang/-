@@ -171,7 +171,7 @@ export function HourlyForecast({ hourly, ultraHourly, reading, loading, hazardOv
       <div className="section-title"><b>{HAZARD_LABEL[hazard]}</b> {title}</div>
 
       {dataMock && (
-        <p className="current__mockwarn">{"⚠️ 실시간 연결 실패 — 예보는 임시값입니다. 담당자에게 문의하세요"}</p>
+        <p className="current__mockwarn">{"⚠️ 실시간 연결 실패 — 예보는 임시값입니다"}</p>
       )}
 
       {tabs.length > 1 && (
