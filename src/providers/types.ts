@@ -25,4 +25,6 @@ export interface HourlyPoint {
 export interface WeatherProvider {
   getNow(lat: number, lon: number): Promise<WeatherNow>;
   getHourly(lat: number, lon: number): Promise<HourlyPoint[]>;
+  /** 초단기예보(앞으로 6시간, 1시간마다 갱신) — 예보 그래프용 */
+  getUltraHourly(lat: number, lon: number): Promise<HourlyPoint[]>;
 }

@@ -6,6 +6,7 @@ import { STAGE_RANK, type HazardKind, type StageLevel } from "../lib/stages";
 
 interface Props {
   hourly: HourlyReading[];
+  ultraHourly: HourlyReading[];
   reading: Reading | null;
   loading: boolean;
   hazardOverride?: HazardKind | null;
@@ -92,7 +93,7 @@ function renderBars(hourly: HourlyReading[], hazard: HazardKind) {
       <g key={`${h.time.toISOString()}-${i}`}>
         <rect x={x} y={y} width={barW} height={barH} rx="6" fill={STAGE_VAR[level]} />
         <text x={i * W + W / 2} y={y - 6} className={`forecast__val ${isExtreme ? "is-extreme" : ""}`}>{label}</text>
-        <text x={i * W + W / 2} y={214} className="forecast__hr">{`${i}\uC2DC`}</text>
+        <text x={i * W + W / 2} y={214} className="forecast__hr">{`${h.time.getHours()}\uC2DC`}</text>
       </g>
     );
   });
@@ -122,7 +123,7 @@ function levelLabel(level: StageLevel) {
   return level === "normal" ? "\uC548\uC804" : level === "interest" ? "\uAD00\uC2EC" : level === "warning" ? "\uC8FC\uC758\uBCF4" : level === "critical" ? "\uC911\uB300\uACBD\uBCF4" : "\uACBD\uBCF4";
 }
 
-export function HourlyForecast({ hourly, reading, loading, hazardOverride, dataMock }: Props) {
+export function HourlyForecast({ hourly, ultraHourly, reading, loading, hazardOverride, dataMock }: Props) {
   const tabs = seasonHazards(reading?.observedAt ?? new Date());
   const [selected, setSelected] = useState<HazardKind>(hazardOverride ?? reading?.primaryHazard ?? tabs[0]);
 
@@ -133,10 +134,16 @@ export function HourlyForecast({ hourly, reading, loading, hazardOverride, dataM
 
   const hazard = tabs.includes(selected) ? selected : tabs[0];
   const dayHourly = makeDayTimeline(hourly, reading?.observedAt ?? new Date());
+  // 그래프: 초단기예보(앞 6시간, 1시간마다 갱신). 없으면 단기예보로 대체.
+  const chartData = ultraHourly.length
+    ? [...ultraHourly].sort((a, b) => a.time.getTime() - b.time.getTime())
+    : dayHourly;
+  // 오늘 예상 최고: 하루 전체(단기예보) 우선, 없으면 초단기예보로 대체.
+  const peakSource = dayHourly.length ? dayHourly : chartData;
   const title = hazard === "cold" ? "기온 예보" : "체감온도 예보";
 
-  if (loading && dayHourly.length === 0) return <section className="card pad">{"\uC608\uBCF4\uB97C \uBD88\uB7EC\uC624\uB294 \uC911..."}</section>;
-  if (dayHourly.length === 0) {
+  if (loading && chartData.length === 0) return <section className="card pad">{"\uC608\uBCF4\uB97C \uBD88\uB7EC\uC624\uB294 \uC911..."}</section>;
+  if (chartData.length === 0) {
     return (
       <section className="card pad empty">
         <p>{"\uC2DC\uAC04\uB300\uBCC4 \uC608\uBCF4 \uB370\uC774\uD130\uAC00 \uC5C6\uC2B5\uB2C8\uB2E4."}</p>
@@ -146,10 +153,10 @@ export function HourlyForecast({ hourly, reading, loading, hazardOverride, dataM
   }
 
   const unit = "\u00B0C";
-  const top = summary(dayHourly, hazard);
-  const stage = maxStage(dayHourly, hazard);
+  const top = summary(peakSource, hazard);
+  const stage = maxStage(peakSource, hazard);
   const stageMeta = STAGE_CONTENT[hazard][stage];
-  const chartWidth = Math.max(dayHourly.length * W, 1200);
+  const chartWidth = chartData.length * W;
 
   return (
     <section className="forecast">
@@ -182,10 +189,12 @@ export function HourlyForecast({ hourly, reading, loading, hazardOverride, dataM
         <span>{top.hour} · {levelLabel(top.level)}</span>
       </div>
 
+      <p style={{ fontSize: "0.8rem", color: "#64748b", fontWeight: 600, margin: "2px 2px 6px" }}>{"⏱ 앞으로 6시간 · 매시간 갱신"}</p>
+
       <div className="forecast__chartwrap" aria-label="hourly forecast horizontal scroll area">
         <div className="forecast__unit">{unit}</div>
         <svg className="forecast__chart" width={chartWidth} height={CHART_H} viewBox={`0 0 ${chartWidth} ${CHART_H}`} role="img" aria-label={`0\uC2DC~24\uC2DC ${title}`}>
-          {renderBars(dayHourly, hazard)}
+          {renderBars(chartData, hazard)}
         </svg>
       </div>
 

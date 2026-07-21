@@ -19,7 +19,7 @@ export default function App() {
   const [forecastHazard, setForecastHazard] = useState<HazardKind | null>(null);
   const [showOnboarding, setShowOnboarding] = useState(true);
 
-  const { reading, hourly, hourlyMock, loading, error, queryByCoords, queryByGps } = useReading();
+  const { reading, hourly, hourlyMock, ultraHourly, ultraMock, loading, error, queryByCoords, queryByGps } = useReading();
   const favorites = useFavorites();
 
   const booted = useRef(false);
@@ -95,10 +95,11 @@ export default function App() {
           {tab === "forecast" && (
             <HourlyForecast
               hourly={hourly}
+              ultraHourly={ultraHourly}
               reading={reading}
               loading={loading}
               hazardOverride={forecastHazard}
-              dataMock={hourlyMock}
+              dataMock={ultraMock || hourlyMock}
             />
           )}
 

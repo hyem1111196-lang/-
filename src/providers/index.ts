@@ -27,5 +27,12 @@ export function createWeatherProvider(): WeatherProvider {
         return mock.getHourly(lat, lon);
       }
     },
+    async getUltraHourly(lat, lon): Promise<HourlyPoint[]> {
+      try {
+        return await kma.getUltraHourly(lat, lon);
+      } catch {
+        return mock.getUltraHourly(lat, lon);
+      }
+    },
   };
 }

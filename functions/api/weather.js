@@ -2,6 +2,7 @@
 // nx/ny(격자) 또는 lat/lon 으로 기상청 초단기실황(현재)·단기예보(hourly) 조회.
 const NCST = "https://apis.data.go.kr/1360000/VilageFcstInfoService_2.0/getUltraSrtNcst";
 const VILAGE = "https://apis.data.go.kr/1360000/VilageFcstInfoService_2.0/getVilageFcst";
+const UFCST = "https://apis.data.go.kr/1360000/VilageFcstInfoService_2.0/getUltraSrtFcst";
 const KST_OFFSET_MS = 9 * 60 * 60 * 1000;
 const HOUR_MS = 60 * 60 * 1000;
 
@@ -38,7 +39,11 @@ export async function onRequest(context) {
 
   try {
     let response;
-    if (mode === "hourly") {
+    if (mode === "ultra") {
+      // 초단기예보(getUltraSrtFcst): 매시간 갱신, 앞으로 6시간까지. 예보 그래프용.
+      const hourly = await fetchUltraForecast(key, grid);
+      response = resp(200, { hourly, grid, source: "getUltraSrtFcst" }, 600);
+    } else if (mode === "hourly") {
       const hourly = await fetchDailyForecast(key, grid);
       response = resp(200, { hourly, grid, source: "getVilageFcst" }, 1800);
     } else {
@@ -79,6 +84,58 @@ async function fetchNow(key, grid) {
     }
   }
   throw lastErr || new Error("KMA current observation data not found");
+}
+
+async function fetchUltraForecast(key, grid) {
+  const candidates = ultraFcstBaseCandidates(new Date(), 2);
+  const byTime = new Map();
+  let lastErr;
+  for (const base of candidates) {
+    try {
+      const items = await callKma(UFCST, key, grid, base, 300);
+      for (const it of items) {
+        const t = `${it.fcstDate}${it.fcstTime}`;
+        const cur = byTime.get(t) || {};
+        const v = Number(it.fcstValue);
+        if (it.category === "T1H") cur.temp = v;
+        else if (it.category === "REH") cur.humidity = v;
+        else if (it.category === "WSD") cur.wind = v;
+        else if (it.category === "PTY") cur.pty = Number.isFinite(v) ? v : 0;
+        else if (it.category === "SKY") cur.sky = Number.isFinite(v) ? v : undefined;
+        else if (it.category === "RN1") cur.rn1 = parsePrecip(it.fcstValue);
+        byTime.set(t, cur);
+      }
+      if ([...byTime.values()].filter((p) => Number.isFinite(p.temp)).length >= 6) break;
+    } catch (e) {
+      lastErr = e;
+    }
+  }
+  const points = [...byTime.keys()].sort().map((t) => {
+    const p = byTime.get(t);
+    return {
+      time: isoFromKma(t),
+      temp: p.temp,
+      humidity: p.humidity,
+      wind: p.wind,
+      pty: p.pty ?? 0,
+      sky: p.sky,
+      rn1: p.rn1 ?? 0,
+      sno: 0,
+    };
+  }).filter((p) => Number.isFinite(p.temp));
+  if (points.length) return points;
+  throw lastErr || new Error("KMA ultra forecast data not found");
+}
+
+function ultraFcstBaseCandidates(now, hoursBack) {
+  // 초단기예보 발표: 매시 30분 생성, 매시 45분 API 제공.
+  const p = kstParts(now);
+  let baseMs = Date.UTC(p.year, p.month - 1, p.day, p.hour, 30, 0, 0);
+  if (p.minute < 45) baseMs -= HOUR_MS;
+  return Array.from({ length: hoursBack + 1 }, (_, i) => {
+    const c = new Date(baseMs - i * HOUR_MS);
+    return { date: ymd(c), time: `${p2(c.getUTCHours())}30` };
+  });
 }
 
 async function fetchDailyForecast(key, grid) {

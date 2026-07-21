@@ -36,28 +36,35 @@ export function createMockProvider(): WeatherProvider {
     };
   };
 
+  const hoursAhead = (lat: number, count: number): HourlyPoint[] => {
+    const out: HourlyPoint[] = [];
+    const start = new Date();
+    for (let h = 1; h <= count; h += 1) {
+      const when = new Date(start.getTime() + h * 3600_000);
+      const n = make(lat, when);
+      out.push({
+        time: when,
+        tempC: n.tempC,
+        humidityPct: n.humidityPct,
+        windMs: n.windMs,
+        pty: n.pty,
+        sky: n.sky,
+        rn1mm: n.rn1mm,
+        source: "mock",
+      });
+    }
+    return out;
+  };
+
   return {
     async getNow(lat) {
       return make(lat, new Date());
     },
     async getHourly(lat) {
-      const out: HourlyPoint[] = [];
-      const start = new Date();
-      for (let h = 1; h <= 12; h += 1) {
-        const when = new Date(start.getTime() + h * 3600_000);
-        const n = make(lat, when);
-        out.push({
-          time: when,
-          tempC: n.tempC,
-          humidityPct: n.humidityPct,
-          windMs: n.windMs,
-          pty: n.pty,
-          sky: n.sky,
-          rn1mm: n.rn1mm,
-          source: "mock",
-        });
-      }
-      return out;
+      return hoursAhead(lat, 12);
+    },
+    async getUltraHourly(lat) {
+      return hoursAhead(lat, 6);
     },
   };
 }

@@ -37,6 +37,29 @@ function parseBaseDate(base?: { date: string; time: string }): Date {
   return new Date(`${y}-${mo}-${d}T${h}:${mi}:00+09:00`);
 }
 
+function mapHourlyPoint(p: HourlyResponse["hourly"][number]): HourlyPoint {
+  return {
+    time: new Date(p.time),
+    tempC: p.temp,
+    humidityPct: Number.isFinite(p.humidity) ? (p.humidity as number) : Number.NaN,
+    windMs: Number.isFinite(p.wind) ? (p.wind as number) : Number.NaN,
+    pty: Number.isFinite(p.pty) ? (p.pty as number) : 0,
+    sky: Number.isFinite(p.sky) ? (p.sky as number) : undefined,
+    rn1mm: [2, 3, 6, 7].includes(Number(p.pty)) && Number.isFinite(p.sno) ? (p.sno as number) : Number.isFinite(p.rn1) ? (p.rn1 as number) : 0,
+    source: "kma",
+  };
+}
+
+async function fetchHourly(lat: number, lon: number, mode: "hourly" | "ultra"): Promise<HourlyPoint[]> {
+  const g = latLonToGrid(lat, lon);
+  const params = new URLSearchParams({ nx: String(g.x), ny: String(g.y), mode });
+  const res = await fetch(`${ENDPOINT}?${params}`);
+  if (!res.ok) throw new Error(`weather proxy ${mode} ${res.status}`);
+  const data: HourlyResponse = await res.json();
+  if (!Array.isArray(data.hourly)) throw new Error(`weather proxy: no ${mode}`);
+  return data.hourly.map(mapHourlyPoint);
+}
+
 export function createKmaProvider(): WeatherProvider {
   return {
     async getNow(lat, lon): Promise<WeatherNow> {
@@ -62,26 +85,11 @@ export function createKmaProvider(): WeatherProvider {
     },
 
     async getHourly(lat, lon): Promise<HourlyPoint[]> {
-      const g = latLonToGrid(lat, lon);
-      const params = new URLSearchParams({
-        nx: String(g.x),
-        ny: String(g.y),
-        mode: "hourly",
-      });
-      const res = await fetch(`${ENDPOINT}?${params}`);
-      if (!res.ok) throw new Error(`weather proxy hourly ${res.status}`);
-      const data: HourlyResponse = await res.json();
-      if (!Array.isArray(data.hourly)) throw new Error("weather proxy: no hourly");
-      return data.hourly.map((p) => ({
-        time: new Date(p.time),
-        tempC: p.temp,
-        humidityPct: Number.isFinite(p.humidity) ? (p.humidity as number) : Number.NaN,
-        windMs: Number.isFinite(p.wind) ? (p.wind as number) : Number.NaN,
-        pty: Number.isFinite(p.pty) ? (p.pty as number) : 0,
-        sky: Number.isFinite(p.sky) ? (p.sky as number) : undefined,
-        rn1mm: [2, 3, 6, 7].includes(Number(p.pty)) && Number.isFinite(p.sno) ? (p.sno as number) : Number.isFinite(p.rn1) ? (p.rn1 as number) : 0,
-        source: "kma" as const,
-      }));
+      return fetchHourly(lat, lon, "hourly");
+    },
+
+    async getUltraHourly(lat, lon): Promise<HourlyPoint[]> {
+      return fetchHourly(lat, lon, "ultra");
     },
   };
 }

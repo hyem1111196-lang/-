@@ -1,5 +1,5 @@
 import { useCallback, useRef, useState } from "react";
-import { createWeatherProvider } from "../providers";
+import { createWeatherProvider, type HourlyPoint } from "../providers";
 import { computeReading, type Reading, type ViewMode } from "../lib/reading";
 import { computeFeelsLike } from "../lib/feelsLike";
 import {
@@ -30,6 +30,30 @@ function sameHour(a: Date, b: Date) {
     a.getDate() === b.getDate() &&
     a.getHours() === b.getHours()
   );
+}
+
+/** 예보 지점(HourlyPoint) → 위험도가 계산된 HourlyReading 으로 변환 */
+function toHourlyReading(p: HourlyPoint, r: Reading): HourlyReading {
+  const humidityPct = Number.isFinite(p.humidityPct) && p.humidityPct > 0 ? p.humidityPct : r.humidityPct;
+  const windMs = Number.isFinite(p.windMs) ? p.windMs : r.windMs;
+  const input = { tempC: p.tempC, humidityPct, windMs };
+  const feels = computeFeelsLike(input, r.model);
+  const heatFeels = computeFeelsLike(input, "summer");
+  const coldFeels = computeFeelsLike(input, "winter");
+  const heatLevel = classifyHeat(heatFeels);
+  const coldLevel = classifyCold(p.tempC);
+  const level = r.model === "winter" ? coldLevel : heatLevel;
+  return {
+    time: p.time,
+    tempC: p.tempC,
+    feelsLikeC: feels,
+    level,
+    heatFeelsLikeC: heatFeels,
+    heatLevel,
+    coldFeelsLikeC: coldFeels,
+    coldLevel,
+    sky: p.sky,
+  };
 }
 
 function currentHourReading(r: Reading): HourlyReading {
@@ -68,13 +92,15 @@ interface LastQuery {
   label: string;
 }
 
-const DEFAULT_LOCATION = { lat: 37.5665, lon: 126.978, label: "\uC11C\uC6B8\uD2B9\uBCC4\uC2DC \uC911\uAD6C (\uAE30\uBCF8 \uC704\uCE58)" };
+const DEFAULT_LOCATION = { lat: 37.5665, lon: 126.978, label: "서울특별시 중구 (기본 위치)" };
 
 export function useReading() {
   const providerRef = useRef(createWeatherProvider());
   const [reading, setReading] = useState<Reading | null>(null);
   const [hourly, setHourly] = useState<HourlyReading[]>([]);
   const [hourlyMock, setHourlyMock] = useState(false);
+  const [ultraHourly, setUltraHourly] = useState<HourlyReading[]>([]);
+  const [ultraMock, setUltraMock] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const reqId = useRef(0);
@@ -88,7 +114,9 @@ export function useReading() {
       setError(null);
       try {
         const provider = providerRef.current;
+        // 단기예보(하루 전체, 오늘 최고용) + 초단기예보(앞 6시간, 그래프용) 병렬 조회
         const hourlyPromise = provider.getHourly(lat, lon).catch(() => []);
+        const ultraPromise = provider.getUltraHourly(lat, lon).catch(() => []);
         const now = await provider.getNow(lat, lon);
         if (id !== reqId.current) return;
         const queriedNow = { ...now, observedAt: new Date() };
@@ -96,37 +124,25 @@ export function useReading() {
         setReading(r);
         setHourly([]);
         setHourlyMock(false);
+        setUltraHourly([]);
+        setUltraMock(false);
 
+        // 오늘 예상 최고(하루 전체) — 단기예보
         hourlyPromise.then((points) => {
           if (id !== reqId.current || points.length === 0) return;
-          // 예보가 임시값(Mock)이면 표시 — 실시간 값이 아닌데 진짜처럼 보이지 않도록.
           setHourlyMock(points[0]?.source === "mock");
-          const mapped = points.map<HourlyReading>((p) => {
-            const humidityPct = Number.isFinite(p.humidityPct) && p.humidityPct > 0 ? p.humidityPct : r.humidityPct;
-            const windMs = Number.isFinite(p.windMs) ? p.windMs : r.windMs;
-            const input = { tempC: p.tempC, humidityPct, windMs };
-            const feels = computeFeelsLike(input, r.model);
-            const heatFeels = computeFeelsLike(input, "summer");
-            const coldFeels = computeFeelsLike(input, "winter");
-            const heatLevel = classifyHeat(heatFeels);
-            const coldLevel = classifyCold(p.tempC);
-            const level = r.model === "winter" ? coldLevel : heatLevel;
-            return {
-              time: p.time,
-              tempC: p.tempC,
-              feelsLikeC: feels,
-              level,
-              heatFeelsLikeC: heatFeels,
-              heatLevel,
-              coldFeelsLikeC: coldFeels,
-              coldLevel,
-              sky: p.sky,
-            };
-          });
+          const mapped = points.map((p) => toHourlyReading(p, r));
           setHourly(mergeCurrentHour(mapped, currentHourReading(r)));
         });
+
+        // 예보 그래프(앞 6시간, 1시간마다 갱신) — 초단기예보
+        ultraPromise.then((points) => {
+          if (id !== reqId.current || points.length === 0) return;
+          setUltraMock(points[0]?.source === "mock");
+          setUltraHourly(points.map((p) => toHourlyReading(p, r)));
+        });
       } catch {
-        if (id === reqId.current) setError("\uB0A0\uC528 \uC870\uD68C\uC5D0 \uC2E4\uD328\uD588\uC2B5\uB2C8\uB2E4. \uC7A0\uC2DC \uD6C4 \uB2E4\uC2DC \uC2DC\uB3C4\uD574\uC8FC\uC138\uC694.");
+        if (id === reqId.current) setError("날씨 조회에 실패했습니다. 잠시 후 다시 시도해주세요.");
       } finally {
         if (id === reqId.current) setLoading(false);
       }
@@ -140,7 +156,7 @@ export function useReading() {
       setError(null);
       try {
         const { lat, lon } = await getBestPosition();
-        const label = await reverseGeocode(lat, lon).catch(() => "\uD604\uC7AC \uC704\uCE58");
+        const label = await reverseGeocode(lat, lon).catch(() => "현재 위치");
         await queryByCoords(lat, lon, label, mode);
       } catch {
         await queryByCoords(DEFAULT_LOCATION.lat, DEFAULT_LOCATION.lon, DEFAULT_LOCATION.label, mode);
@@ -160,5 +176,5 @@ export function useReading() {
     [queryByCoords, queryByGps],
   );
 
-  return { reading, hourly, hourlyMock, loading, error, queryByCoords, queryByGps, refresh };
+  return { reading, hourly, hourlyMock, ultraHourly, ultraMock, loading, error, queryByCoords, queryByGps, refresh };
 }
