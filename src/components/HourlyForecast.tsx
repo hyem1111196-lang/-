@@ -35,7 +35,7 @@ const STAGE_VAR: Record<StageLevel, string> = {
   critical: "var(--stage-critical)",
 };
 
-const VIEW_W = 340; // 고정 뷰박스 폭 — 막대 개수가 5~6개로 달라져도 동일 비율로 균등 분배
+const W = 56; // 막대 한 칸 폭(고정) — 12칸은 옆으로 스크롤해서 숫자 안 겹치게
 const CHART_H = 224;
 
 function valueOf(h: HourlyReading, hazard: HazardKind) {
@@ -77,9 +77,7 @@ function renderBars(hourly: HourlyReading[], hazard: HazardKind) {
   const span = Math.max(6, max - min);
   const H = 150;
   const padTop = 26;
-  const n = hourly.length || 1;
-  const slot = VIEW_W / n; // \uB9C9\uB300 \uD55C \uCE78 \uD3ED \u2014 \uAC1C\uC218\uC5D0 \uB9DE\uCDB0 \uADE0\uB4F1 \uBD84\uBC30
-  const barW = Math.min(38, slot * 0.5);
+  const barW = 30;
   const extreme = isCold ? min : max;
 
   return hourly.map((h, i) => {
@@ -87,7 +85,7 @@ function renderBars(hourly: HourlyReading[], hazard: HazardKind) {
     const level = levelOf(h, hazard);
     const ratio = (value - min) / span;
     const barH = padTop + ratio * H;
-    const cx = (i + 0.5) * slot;
+    const cx = i * W + W / 2;
     const y = 190 - barH;
     const isExtreme = value === extreme;
     const label = `${value.toFixed(1)}\u00B0`;
@@ -136,15 +134,17 @@ export function HourlyForecast({ hourly, ultraHourly, reading, loading, hazardOv
 
   const hazard = tabs.includes(selected) ? selected : tabs[0];
   const dayHourly = makeDayTimeline(hourly, reading?.observedAt ?? new Date());
-  // 그래프: 초단기예보(앞 6시간, 1시간마다 갱신)만 사용. 로딩 중엔 비워둠 → 24개→6개 깜빡임 방지.
-  const chartData = [...ultraHourly].sort((a, b) => a.time.getTime() - b.time.getTime());
-  // 오늘 예상 최고: 하루 전체(단기예보) 기준이되, 그래프에 보이는 앞 6시간은
-  // 초단기예보 값으로 덮어써 그래프 막대와 최고값이 어긋나지 않게 한다.
-  const ultraByHour = new Map(chartData.map((h) => [h.time.getHours(), h]));
-  const peakSource = dayHourly.length
-    ? dayHourly.map((h) => ultraByHour.get(h.time.getHours()) ?? h)
-    : chartData;
-  const hasAny = dayHourly.length > 0 || chartData.length > 0;
+  // 그래프·최고값 공통 데이터: 지금부터 앞으로 12시간(자정 넘김) — 다음 시각부터, 초단기예보(앞 6시간) 우선 + 단기예보(7~12시간)로 채움.
+  const nowMs = Date.now();
+  const endMs = nowMs + 12 * 3600_000;
+  const hourKey = (h: HourlyReading) => Math.floor(h.time.getTime() / 3600_000); // 시간 단위로 묶어 중복 제거
+  const byTime = new Map<number, HourlyReading>();
+  for (const h of hourly) byTime.set(hourKey(h), h);
+  for (const h of ultraHourly) byTime.set(hourKey(h), h); // 초단기예보가 같은 시각을 덮어씀(더 정확)
+  const chartData = [...byTime.values()]
+    .filter((h) => h.time.getTime() > nowMs && h.time.getTime() <= endMs)
+    .sort((a, b) => a.time.getTime() - b.time.getTime());
+  const hasAny = chartData.length > 0 || dayHourly.length > 0;
   const title = hazard === "cold" ? "기온 예보" : "체감온도 예보";
 
   if (!hasAny) {
@@ -159,15 +159,12 @@ export function HourlyForecast({ hourly, ultraHourly, reading, loading, hazardOv
   }
 
   const unit = "\u00B0C";
-  // \uCD5C\uACE0\uAC12\uC740 \uD604\uC7AC \uC2DC\uAC01\uBD80\uD130 \uC55E\uC73C\uB85C\uB9CC \uACC4\uC0B0 \u2014 \uC9C0\uB09C \uC2DC\uAC04\uC758 \uCC44\uC6C0\uAC12(\uC5C9\uB6B1\uD55C 4\uC2DC \uB4F1) \uC81C\uC678.
-  const nowHourStart = new Date();
-  nowHourStart.setMinutes(0, 0, 0);
-  const futureSrc = peakSource.filter((h) => h.time.getTime() >= nowHourStart.getTime());
-  const peakSrc = futureSrc.length ? futureSrc : peakSource;
+  // \uCD5C\uACE0\uAC12 = \uADF8\uB798\uD504\uC640 \uB3D9\uC77C\uD55C 12\uC2DC\uAC04 \uB370\uC774\uD130 \u2192 \uB9C9\uB300 \uCD5C\uACE0 = \uD45C\uCD9C\uAC12(\uD56D\uC0C1 \uC77C\uCE58).
+  const peakSrc = chartData.length ? chartData : dayHourly;
   const top = summary(peakSrc, hazard);
   const stage = maxStage(peakSrc, hazard);
   const stageMeta = STAGE_CONTENT[hazard][stage];
-  const chartWidth = VIEW_W;
+  const chartWidth = chartData.length * W;
   // 하루 예보(단기예보)가 아직 안 왔으면 '오늘 최고'를 계산하지 않고 '불러오는 중' 표시.
   const peakReady = dayHourly.length > 0;
 
@@ -197,7 +194,7 @@ export function HourlyForecast({ hourly, ultraHourly, reading, loading, hazardOv
       )}
 
       <div className="forecast-peak card" style={{ "--stage": peakReady ? STAGE_VAR[top.level] : "#94a3b8" } as CSSProperties}>
-        <span className="forecast-peak__kicker">{"\uC55E\uC73C\uB85C \uCD5C\uACE0 \uC704\uD5D8\uAC12"}</span>
+        <span className="forecast-peak__kicker">{"\uC55E\uC73C\uB85C 12\uC2DC\uAC04 \uC911 \uCD5C\uACE0 \uC704\uD5D8\uAC12"}</span>
         <strong>{peakReady ? top.label : "불러오는 중..."}</strong>
         {peakReady && <span>{top.hour} · {levelLabel(top.level)}</span>}
       </div>
@@ -205,7 +202,7 @@ export function HourlyForecast({ hourly, ultraHourly, reading, loading, hazardOv
       <div className="forecast__chartwrap" aria-label="hourly forecast horizontal scroll area">
         <div className="forecast__unit">{unit}</div>
         {chartData.length > 0 ? (
-          <svg className="forecast__chart" width={chartWidth} height={CHART_H} viewBox={`0 0 ${chartWidth} ${CHART_H}`} preserveAspectRatio="none" role="img" aria-label={title}>
+          <svg className="forecast__chart" width={chartWidth} height={CHART_H} viewBox={`0 0 ${chartWidth} ${CHART_H}`} role="img" aria-label={title}>
             {renderBars(chartData, hazard)}
           </svg>
         ) : (

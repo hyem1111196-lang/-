@@ -637,8 +637,8 @@
   color: var(--text-3);
 }
 .forecast__chart {
-  width: 100%;
-  max-width: 100%;
+  width: auto;
+  max-width: none;
   height: 224px;
   display: block;
 }

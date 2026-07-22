@@ -146,7 +146,7 @@ async function fetchDailyForecast(key, grid) {
 
   for (const base of candidates) {
     try {
-      const items = await callKma(VILAGE, key, grid, base, 1000);
+      const items = await callKma(VILAGE, key, grid, base, 1500);
       for (const it of items) {
         const t = `${it.fcstDate}${it.fcstTime}`;
         if (!targets.has(t)) continue;
@@ -247,9 +247,10 @@ async function callKma(endpoint, key, grid, base, rows) {
 }
 
 function todayHourKeys() {
+  // 오늘 0시 ~ 내일 24시(48시간) — 야간 작업(자정 넘김) '앞으로 12시간' 계산 대비
   const p = kstParts(new Date());
   const start = Date.UTC(p.year, p.month - 1, p.day, 0, 0, 0, 0);
-  return new Set(Array.from({ length: 25 }, (_, h) => {
+  return new Set(Array.from({ length: 48 }, (_, h) => {
     const d = new Date(start + h * HOUR_MS);
     return `${d.getUTCFullYear()}${p2(d.getUTCMonth() + 1)}${p2(d.getUTCDate())}${p2(d.getUTCHours())}00`;
   }));

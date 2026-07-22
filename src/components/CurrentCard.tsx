@@ -9,6 +9,7 @@ import { STAGE_RANK, type HazardKind, type StageLevel } from "../lib/stages";
 interface Props {
   reading: Reading | null;
   hourly: HourlyReading[];
+  ultraHourly: HourlyReading[];
   loading: boolean;
   error: string | null;
   onGps: () => void;
@@ -47,20 +48,24 @@ function dateShort(date: Date) {
   return `${date.getMonth() + 1}/${date.getDate()}`;
 }
 
-/** 현재 시각(정시)부터 앞으로의 예보만 — 지난 시간의 채움값(엉뚱한 최고값)을 제외 */
-function futureOnly(hourly: HourlyReading[]): HourlyReading[] {
-  const start = new Date();
-  start.setMinutes(0, 0, 0);
-  const future = hourly.filter((h) => h.time.getTime() >= start.getTime());
-  return future.length ? future : hourly;
+/** 지금(정시)부터 앞으로 12시간(자정 넘김 포함) 예보 — 초단기예보 우선 + 단기예보로 채움 */
+function next12Hours(hourly: HourlyReading[], ultra: HourlyReading[]): HourlyReading[] {
+  const nowMs = Date.now();
+  const endMs = nowMs + 12 * 3600_000;
+  const hourKey = (h: HourlyReading) => Math.floor(h.time.getTime() / 3600_000); // 시간 단위로 묶어 중복 제거
+  const byTime = new Map<number, HourlyReading>();
+  for (const h of hourly) byTime.set(hourKey(h), h);
+  for (const h of ultra) byTime.set(hourKey(h), h);
+  const win = [...byTime.values()].filter((h) => h.time.getTime() > nowMs && h.time.getTime() <= endMs);
+  return win.length ? win : hourly;
 }
 
-function valueText(hazard: HazardKind, reading: Reading, hourly: HourlyReading[]) {
+function valueText(hazard: HazardKind, reading: Reading, window: HourlyReading[]) {
   if (hazard === "cold") {
-    const values = [reading.tempC, ...futureOnly(hourly).map((h) => h.tempC)].filter(Number.isFinite);
+    const values = [reading.tempC, ...window.map((h) => h.tempC)].filter(Number.isFinite);
     return `\uCD5C\uC800 \uAE30\uC628 ${formatTemp(Math.min(...values))}`;
   }
-  const values = [reading.feelsLikeC, ...futureOnly(hourly).map((h) => h.heatFeelsLikeC)].filter(Number.isFinite);
+  const values = [reading.feelsLikeC, ...window.map((h) => h.heatFeelsLikeC)].filter(Number.isFinite);
   return `\uCD5C\uACE0 \uCCB4\uAC10\uC628\uB3C4 ${formatTemp(Math.max(...values))}`;
 }
 
@@ -69,13 +74,14 @@ function getOperationalSeason(date: Date) {
   return month >= 11 || month <= 3 ? "winter" : "summer";
 }
 
-function WeatherFocus({ reading, hourly, onOpenSafety, onOpenForecast }: { reading: Reading; hourly: HourlyReading[]; onOpenSafety: () => void; onOpenForecast: (hazard: HazardKind) => void }) {
+function WeatherFocus({ reading, hourly, ultraHourly, onOpenSafety, onOpenForecast }: { reading: Reading; hourly: HourlyReading[]; ultraHourly: HourlyReading[]; onOpenSafety: () => void; onOpenForecast: (hazard: HazardKind) => void }) {
   const season = getOperationalSeason(reading.observedAt);
   const focusHazards = season === "winter" ? WINTER_HAZARDS : SUMMER_HAZARDS;
+  const next12 = next12Hours(hourly, ultraHourly);
 
   const summaryFor = (hazard: HazardKind) => {
     const currentLevel = reading.primaryHazard === hazard ? reading.primaryLevel : "normal";
-    const forecastItems = futureOnly(hourly).map((h) => ({ time: h.time, level: h[HAZARD_STAGE_KEY[hazard]] as StageLevel }));
+    const forecastItems = next12.map((h) => ({ time: h.time, level: h[HAZARD_STAGE_KEY[hazard]] as StageLevel }));
     const level = maxLevel([currentLevel, ...forecastItems.map((item) => item.level)]);
     const date = level !== "normal" ? forecastItems.find((item) => item.level === level)?.time ?? reading.observedAt : reading.observedAt;
     return { level, date };
@@ -88,7 +94,7 @@ function WeatherFocus({ reading, hourly, onOpenSafety, onOpenForecast }: { readi
     <div className="weather-focus">
       <div className="weather-focus__main">
         <strong>{"\uC624\uB298 \uC911\uC810 \uD655\uC778 \uC704\uD5D8"}</strong>
-        <span>{"\uD604\uD669\uC740 \uAE30\uC0C1\uCCAD \uCD08\uB2E8\uAE30\uC2E4\uD669, \uC608\uBCF4\uB294 \uAE08\uC77C \uB0A8\uC740 \uC2DC\uAC04 \uC911 \uCD5C\uACE0 \uC704\uD5D8\uAC12\uC785\uB2C8\uB2E4."}</span>
+        <span>{"\uD604\uD669\uC740 \uAE30\uC0C1\uCCAD \uCD08\uB2E8\uAE30\uC2E4\uD669, \uC608\uBCF4\uB294 \uC55E\uC73C\uB85C 12\uC2DC\uAC04 \uC911 \uCD5C\uACE0 \uC704\uD5D8\uAC12\uC785\uB2C8\uB2E4."}</span>
       </div>
       <div className="weather-focus__chips" aria-label="forecast hazard status">
         {focusHazards.map((hazard) => {
@@ -103,7 +109,7 @@ function WeatherFocus({ reading, hourly, onOpenSafety, onOpenForecast }: { readi
               {forecastReady ? (
                 <>
                   <span className="weather-focus__chip-status">{dateShort(date)} <small>{LEVEL_LABEL[level]}</small></span>
-                  <em>{valueText(hazard, reading, hourly)}</em>
+                  <em>{valueText(hazard, reading, next12)}</em>
                 </>
               ) : (
                 <span className="weather-focus__chip-status">{"불러오는 중..."}</span>
@@ -119,7 +125,7 @@ function WeatherFocus({ reading, hourly, onOpenSafety, onOpenForecast }: { readi
   );
 }
 
-export function CurrentCard({ reading, hourly, loading, error, onGps, onToggleFav, onOpenSafety, onOpenForecast, isFav }: Props) {
+export function CurrentCard({ reading, hourly, ultraHourly, loading, error, onGps, onToggleFav, onOpenSafety, onOpenForecast, isFav }: Props) {
   const [share, setShare] = useState(false);
   const meta = reading ? getStageMeta(reading.primaryHazard, reading.primaryLevel) : null;
 
@@ -164,7 +170,7 @@ export function CurrentCard({ reading, hourly, loading, error, onGps, onToggleFa
             <span className="stagechip__th">{meta.thresholdLabel}</span>
           </div>
 
-          <WeatherFocus reading={reading} hourly={hourly} onOpenSafety={onOpenSafety} onOpenForecast={onOpenForecast} />
+          <WeatherFocus reading={reading} hourly={hourly} ultraHourly={ultraHourly} onOpenSafety={onOpenSafety} onOpenForecast={onOpenForecast} />
 
           <dl className="current__grid">
             <div><dt>{"\uAE30\uC628"}</dt><dd>{formatTemp(reading.tempC)}</dd></div>

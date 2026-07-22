@@ -55,6 +55,7 @@ export default function App() {
               <CurrentCard
                 reading={reading}
                 hourly={hourly}
+                ultraHourly={ultraHourly}
                 loading={loading}
                 error={error}
                 onGps={() => queryByGps("auto")}
