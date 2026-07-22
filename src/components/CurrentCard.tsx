@@ -104,7 +104,7 @@ function WeatherFocus({ reading, hourly, ultraHourly, onOpenSafety, onOpenForeca
             <button key={hazard} className={`weather-focus__chip ${forecastReady ? `level-${level}` : "is-loading"}`} style={{ "--stage": forecastReady ? meta.color : "#94a3b8" } as CSSProperties} onClick={() => onOpenForecast(hazard)}>
               <div className="weather-focus__chip-head">
                 <b>{HAZARD_LABEL[hazard]}</b>
-                <span className="weather-focus__chip-cap">{"앞으로 최고 위험값"}</span>
+                <span className="weather-focus__chip-cap">{"앞으로 12시간 최고 위험값"}</span>
               </div>
               {forecastReady ? (
                 <>
