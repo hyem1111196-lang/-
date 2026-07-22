@@ -88,7 +88,7 @@ function WeatherFocus({ reading, hourly, onOpenSafety, onOpenForecast }: { readi
     <div className="weather-focus">
       <div className="weather-focus__main">
         <strong>{"\uC624\uB298 \uC911\uC810 \uD655\uC778 \uC704\uD5D8"}</strong>
-        <span>{"\uD604\uD669\uC740 \uAE30\uC0C1\uCCAD \uCD08\uB2E8\uAE30\uC2E4\uD669, \uC608\uBCF4\uB294 \uC55E\uC73C\uB85C\uC758 \uC608\uC0C1\uAC12 \uAE30\uC900\uC785\uB2C8\uB2E4."}</span>
+        <span>{"\uD604\uD669\uC740 \uAE30\uC0C1\uCCAD \uCD08\uB2E8\uAE30\uC2E4\uD669, \uC608\uBCF4\uB294 \uAE08\uC77C \uB0A8\uC740 \uC2DC\uAC04 \uC911 \uCD5C\uACE0 \uC704\uD5D8\uAC12\uC785\uB2C8\uB2E4."}</span>
       </div>
       <div className="weather-focus__chips" aria-label="forecast hazard status">
         {focusHazards.map((hazard) => {
