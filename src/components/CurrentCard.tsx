@@ -60,12 +60,12 @@ function next12Hours(hourly: HourlyReading[], ultra: HourlyReading[]): HourlyRea
   return win.length ? win : hourly;
 }
 
-function valueText(hazard: HazardKind, reading: Reading, window: HourlyReading[]) {
+function valueText(hazard: HazardKind, window: HourlyReading[]) {
   if (hazard === "cold") {
-    const values = [reading.tempC, ...window.map((h) => h.tempC)].filter(Number.isFinite);
+    const values = window.map((h) => h.tempC).filter(Number.isFinite);
     return `\uCD5C\uC800 \uAE30\uC628 ${formatTemp(Math.min(...values))}`;
   }
-  const values = [reading.feelsLikeC, ...window.map((h) => h.heatFeelsLikeC)].filter(Number.isFinite);
+  const values = window.map((h) => h.heatFeelsLikeC).filter(Number.isFinite);
   return `\uCD5C\uACE0 \uCCB4\uAC10\uC628\uB3C4 ${formatTemp(Math.max(...values))}`;
 }
 
@@ -80,9 +80,8 @@ function WeatherFocus({ reading, hourly, ultraHourly, onOpenSafety, onOpenForeca
   const next12 = next12Hours(hourly, ultraHourly);
 
   const summaryFor = (hazard: HazardKind) => {
-    const currentLevel = reading.primaryHazard === hazard ? reading.primaryLevel : "normal";
     const forecastItems = next12.map((h) => ({ time: h.time, level: h[HAZARD_STAGE_KEY[hazard]] as StageLevel }));
-    const level = maxLevel([currentLevel, ...forecastItems.map((item) => item.level)]);
+    const level = maxLevel(forecastItems.map((item) => item.level));
     const date = level !== "normal" ? forecastItems.find((item) => item.level === level)?.time ?? reading.observedAt : reading.observedAt;
     return { level, date };
   };
@@ -109,7 +108,7 @@ function WeatherFocus({ reading, hourly, ultraHourly, onOpenSafety, onOpenForeca
               {forecastReady ? (
                 <>
                   <span className="weather-focus__chip-status">{dateShort(date)} <small>{LEVEL_LABEL[level]}</small></span>
-                  <em>{valueText(hazard, reading, next12)}</em>
+                  <em>{valueText(hazard, next12)}</em>
                 </>
               ) : (
                 <span className="weather-focus__chip-status">{"불러오는 중..."}</span>
