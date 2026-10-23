@@ -1,4 +1,5 @@
 import type { HourlyPoint, WeatherNow, WeatherProvider } from "./types";
+import { EMPTY_WARNING_STATUS, type WarningStatus } from "../lib/warnings";
 
 // 실시간 연결 실패 시 폴백용 근사값 제공자.
 // (체험/데모 시나리오 모드는 전사배포 안전을 위해 제거됨 — 어떤 URL로도 조작된 고정값이 나오지 않음)
@@ -65,6 +66,10 @@ export function createMockProvider(): WeatherProvider {
     },
     async getUltraHourly(lat) {
       return hoursAhead(lat, 6);
+    },
+    async getWarnings(): Promise<WarningStatus> {
+      // 폴백: 특보 정보 없음(source: none) — 화면에 '특보 정보 조회 불가'로 표시된다.
+      return EMPTY_WARNING_STATUS;
     },
   };
 }

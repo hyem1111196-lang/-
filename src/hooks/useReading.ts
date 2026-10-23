@@ -8,6 +8,8 @@ import {
   type StageLevel,
 } from "../lib/stages";
 import { getBestPosition, reverseGeocode } from "../lib/geolocation";
+import { locationFromLabel } from "../lib/warnings";
+import { isPreviewHost, readWarningTestParam, warningTestStatus } from "../lib/testHooks";
 
 export type { ViewMode } from "../lib/reading";
 
@@ -117,10 +119,21 @@ export function useReading() {
         // 단기예보(하루 전체, 오늘 최고용) + 초단기예보(앞 6시간, 그래프용) 병렬 조회
         const hourlyPromise = provider.getHourly(lat, lon).catch(() => []);
         const ultraPromise = provider.getUltraHourly(lat, lon).catch(() => []);
-        const now = await provider.getNow(lat, lon);
+        // 현재 관측 + 기상청 특보 현황을 같이 받아 한 번에 판정(특보가 늦게 와서 단계가 바뀌며 팝업이 두 번 뜨지 않도록)
+        const [now, fetchedStatus] = await Promise.all([
+          provider.getNow(lat, lon),
+          provider.getWarnings().catch(() => null),
+        ]);
         if (id !== reqId.current) return;
+        // 미리보기·로컬 주소에서만: ?wrntest=cold|danger|heat|none 으로 가짜 특보 주입(운영 주소는 무시)
+        let warningStatus = fetchedStatus;
+        if (typeof window !== "undefined" && isPreviewHost(window.location.hostname)) {
+          const t = readWarningTestParam(window.location.search);
+          const sido = locationFromLabel(label)?.sido;
+          if (t && sido) warningStatus = warningTestStatus(t, sido) ?? fetchedStatus;
+        }
         const queriedNow = { ...now, observedAt: new Date() };
-        const r = computeReading(queriedNow, label, mode);
+        const r = computeReading(queriedNow, label, mode, warningStatus);
         setReading(r);
         setHourly([]);
         setHourlyMock(false);

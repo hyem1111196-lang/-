@@ -11,9 +11,10 @@ interface Props {
 
 export function StageModal({ reading, onConfirm, onClose }: Props) {
   const meta = getStageMeta(reading.primaryHazard, reading.primaryLevel);
+  const activeWarning = reading.warnings.find((w) => w.match === "full" && w.entry.hazard === reading.primaryHazard);
   const headline = reading.primaryHazard === "cold"
-    ? `기온 ${formatTemp(reading.tempC)}`
-    : `체감온도 ${formatTemp(reading.feelsLikeC)}`;
+    ? `기온 ${formatTemp(reading.tempC)}${activeWarning ? ` · ${activeWarning.entry.name} 발효 중` : ""}`
+    : `체감온도 ${formatTemp(reading.feelsLikeC)}${activeWarning ? ` · ${activeWarning.entry.name} 발효 중` : ""}`;
 
   return (
     <div className="modal" role="dialog" aria-modal="true" aria-label="위험별 철도 조치사항">

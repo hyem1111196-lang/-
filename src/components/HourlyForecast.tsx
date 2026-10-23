@@ -3,6 +3,7 @@ import type { HourlyReading } from "../hooks/useReading";
 import { STAGE_CONTENT } from "../data/stageContent";
 import type { Reading } from "../lib/reading";
 import { STAGE_RANK, type HazardKind, type StageLevel } from "../lib/stages";
+import { WarningBadges } from "./WarningBadges";
 
 interface Props {
   hourly: HourlyReading[];
@@ -192,6 +193,8 @@ export function HourlyForecast({ hourly, ultraHourly, reading, loading, hazardOv
           ))}
         </div>
       )}
+
+      {reading && hazard === reading.primaryHazard && <WarningBadges reading={reading} compact />}
 
       <div className="forecast-peak card" style={{ "--stage": peakReady ? STAGE_VAR[top.level] : "#94a3b8" } as CSSProperties}>
         <span className="forecast-peak__kicker">{"\uC55E\uC73C\uB85C 12\uC2DC\uAC04 \uC911 \uCD5C\uACE0 \uC704\uD5D8\uAC12"}</span>

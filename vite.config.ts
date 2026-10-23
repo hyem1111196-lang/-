@@ -45,6 +45,15 @@ export default defineConfig({
               expiration: { maxEntries: 50, maxAgeSeconds: 60 * 10 },
             },
           },
+          {
+            urlPattern: /\/api\/warnings.*/,
+            handler: "NetworkFirst",
+            options: {
+              cacheName: "warnings-api",
+              networkTimeoutSeconds: 5,
+              expiration: { maxEntries: 4, maxAgeSeconds: 60 * 5 },
+            },
+          },
         ],
       },
     }),

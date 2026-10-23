@@ -1,10 +1,11 @@
 import { useState, type CSSProperties } from "react";
 import { ShareSheet } from "./ShareSheet";
+import { WarningBadges } from "./WarningBadges";
 import { getStageMeta } from "../data/stageContent";
 import { formatObservedAt, formatTemp } from "../lib/format";
 import type { HourlyReading } from "../hooks/useReading";
 import type { Reading } from "../lib/reading";
-import { STAGE_RANK, type HazardKind, type StageLevel } from "../lib/stages";
+import { maxStage, STAGE_RANK, type HazardKind, type StageLevel } from "../lib/stages";
 
 interface Props {
   reading: Reading | null;
@@ -81,8 +82,13 @@ function WeatherFocus({ reading, hourly, ultraHourly, onOpenSafety, onOpenForeca
 
   const summaryFor = (hazard: HazardKind) => {
     const forecastItems = next12.map((h) => ({ time: h.time, level: h[HAZARD_STAGE_KEY[hazard]] as StageLevel }));
-    const level = maxLevel(forecastItems.map((item) => item.level));
-    const date = level !== "normal" ? forecastItems.find((item) => item.level === level)?.time ?? reading.observedAt : reading.observedAt;
+    const forecastLevel = maxLevel(forecastItems.map((item) => item.level));
+    // 한파: 현재 발효 중인 기상청 한파특보도 '앞으로 12시간' 위험에 포함(특보는 보통 수 시간~며칠 지속)
+    const level = hazard === "cold" && reading.primaryHazard === "cold" ? maxStage(forecastLevel, reading.warningLevel) : forecastLevel;
+    const date =
+      level !== "normal"
+        ? forecastItems.find((item) => item.level === level)?.time ?? reading.observedAt
+        : reading.observedAt;
     return { level, date };
   };
 
@@ -166,8 +172,10 @@ export function CurrentCard({ reading, hourly, ultraHourly, loading, error, onGp
           <div className="stagechip" data-level={reading.primaryLevel}>
             <span className="stagechip__emoji">{meta.emoji}</span>
             <b>{LEVEL_LABEL[reading.primaryLevel]}</b>
-            <span className="stagechip__th">{meta.thresholdLabel}</span>
+            <span className="stagechip__th">{reading.levelSource === "warning" ? "기상청 특보 기준" : meta.thresholdLabel}</span>
           </div>
+
+          <WarningBadges reading={reading} />
 
           <WeatherFocus reading={reading} hourly={hourly} ultraHourly={ultraHourly} onOpenSafety={onOpenSafety} onOpenForecast={onOpenForecast} />
 

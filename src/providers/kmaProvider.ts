@@ -1,7 +1,10 @@
 import type { HourlyPoint, WeatherNow, WeatherProvider } from "./types";
 import { latLonToGrid } from "../lib/kmaGrid";
+import { statusFromResponse, type WarningStatus } from "../lib/warnings";
 
 const ENDPOINT = "/api/weather";
+const WARNINGS_ENDPOINT = "/api/warnings";
+const WARNINGS_TIMEOUT_MS = 5000;
 
 interface NowResponse {
   temp: number;
@@ -90,6 +93,21 @@ export function createKmaProvider(): WeatherProvider {
 
     async getUltraHourly(lat, lon): Promise<HourlyPoint[]> {
       return fetchHourly(lat, lon, "ultra");
+    },
+
+    async getWarnings(): Promise<WarningStatus> {
+      // 현황 표시를 오래 붙잡지 않도록 짧은 타임아웃 — 실패하면 호출 측이 '특보 정보 없음'으로 처리
+      const ctrl = new AbortController();
+      const timer = setTimeout(() => ctrl.abort(), WARNINGS_TIMEOUT_MS);
+      try {
+        const res = await fetch(WARNINGS_ENDPOINT, { signal: ctrl.signal });
+        if (!res.ok) throw new Error(`warnings proxy ${res.status}`);
+        const data = await res.json();
+        if (typeof data?.t6 !== "string") throw new Error("warnings proxy: no status text");
+        return statusFromResponse(data);
+      } finally {
+        clearTimeout(timer);
+      }
     },
   };
 }
