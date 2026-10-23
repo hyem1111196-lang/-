@@ -14,14 +14,8 @@ export function WarningBadges({ reading, compact = false }: Props) {
   const seasonLabel = reading.primaryHazard === "cold" ? "한파" : "폭염";
   const measureLabel = reading.primaryHazard === "cold" ? "기온" : "체감온도";
 
-  if (reading.warningSource === "none") {
-    if (compact) return null;
-    return (
-      <p className="wrn wrn--muted" aria-label="weather warning status">
-        {`기상청 특보 정보를 불러오지 못해 ${measureLabel} 기준으로만 판정했습니다.`}
-      </p>
-    );
-  }
+  // 특보 조회 실패 시에는 아무것도 표시하지 않는다(기온·체감온도 기준 판정은 그대로 동작).
+  if (reading.warningSource === "none") return null;
 
   if (full.length === 0 && partial.length === 0) {
     if (compact) return null;
