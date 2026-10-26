@@ -89,7 +89,7 @@ export function GuideView({ reading }: Props) {
                   <div className="rail-actions__head">
                     <span className="ref__dot" style={{ background: m.color }} />
                     <b>{m.label}</b>
-                    <span>{tab === "cold" ? "기온 " : "체감온도 "}{m.thresholdLabel}</span>
+                    {tab !== "cold" && <span>체감온도 {m.thresholdLabel}</span>}
                   </div>
                   <p className="rail-actions__headline">{m.headline}</p>
                   <ul className="acts">
