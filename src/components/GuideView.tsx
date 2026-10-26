@@ -56,13 +56,28 @@ export function GuideView({ reading }: Props) {
                 const m = stages[lv];
                 return (
                   <li key={lv}>
-                    <span className="ref__dot" style={{ background: m.color }} />
-                    <b>{m.label}</b>
-                    <span className="ref__th">{tab === "cold" ? "기온 " : "체감온도 "}{m.thresholdLabel}</span>
+                    <div className="reftable__row">
+                      <span className="ref__dot" style={{ background: m.color }} />
+                      <b>{m.label}</b>
+                      <span className="ref__th">{tab === "cold" ? "기온 " : "체감온도 "}{m.thresholdLabel}</span>
+                    </div>
+                    {m.criteria && (
+                      <ul className="crit">
+                        {m.criteria.map((text, i) => (
+                          <li key={i}>{text}</li>
+                        ))}
+                      </ul>
+                    )}
                   </li>
                 );
               })}
             </ul>
+            {tab === "cold" && (
+              <p className="refbox__note">
+                주의보·경보의 세부 기준은 기상청 한파특보 발표기준입니다. 해당 기준으로 특보가 발효되면 현재
+                기온과 무관하게 앱 단계에 자동 반영됩니다.
+              </p>
+            )}
           </div>
 
           <div className="card refbox rail-actions">

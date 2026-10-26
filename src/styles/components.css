@@ -811,10 +811,38 @@
   gap: var(--sp-2);
 }
 .reftable li {
+  font-size: var(--text-base);
+}
+.reftable__row {
   display: flex;
   align-items: center;
   gap: var(--sp-2);
-  font-size: var(--text-base);
+}
+/* 기상청 특보 공식 발표기준 (주의보·경보) */
+.crit {
+  margin: var(--sp-1) 0 var(--sp-1) 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.crit li {
+  display: block;
+  position: relative;
+  padding-left: 10px;
+  font-size: var(--text-sm);
+  color: var(--text-3);
+  line-height: 1.45;
+}
+.crit li::before {
+  content: "·";
+  position: absolute;
+  left: 0;
+}
+.refbox__note {
+  margin-top: var(--sp-3);
+  font-size: var(--text-sm);
+  color: var(--text-3);
+  line-height: 1.5;
 }
 .reftable b {
   min-width: 64px;
